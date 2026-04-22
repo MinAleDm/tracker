@@ -1,9 +1,9 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import type { CreateTaskDto, TaskActivityDto, TaskDetailsDto, TaskFiltersDto, TaskListResponseDto, UpdateTaskDto } from "@tracker/types";
 import { RedisService } from "../../common/redis/redis.service";
-import { RealtimeService } from "../realtime/realtime.service";
 import { ActivityRepository } from "./activity.repository";
 import { CommentsRepository } from "./comments.repository";
+import { TaskEventsService } from "./events/task-events.service";
 import { mapActivity, mapComment, mapTask, mapTaskDetails } from "./task.mapper";
 import { TasksRepository } from "./tasks.repository";
 
@@ -14,7 +14,7 @@ export class TasksService {
     private readonly commentsRepository: CommentsRepository,
     private readonly activityRepository: ActivityRepository,
     private readonly redisService: RedisService,
-    private readonly realtimeService: RealtimeService,
+    private readonly taskEventsService: TaskEventsService,
   ) {}
 
   async list(userId: string, filters: TaskFiltersDto): Promise<TaskListResponseDto> {
@@ -49,15 +49,13 @@ export class TasksService {
 
     const task = await this.tasksRepository.create(projectId, userId, dto);
 
-    await this.activityRepository.create({
+    await this.taskEventsService.publish({
+      type: "task.created",
+      projectId,
       taskId: task.id,
       actorId: userId,
-      action: "task.created",
-      afterValue: task.title,
+      title: task.title,
     });
-
-    await this.redisService.deleteByPrefix(`tasks:${projectId}:`);
-    this.realtimeService.publishTaskEvent({ projectId, taskId: task.id, action: "created" });
 
     return mapTask(task);
   }
@@ -82,19 +80,13 @@ export class TasksService {
     const updated = await this.tasksRepository.update(taskId, dto);
     const changes = this.collectChanges(existing, dto);
 
-    for (const change of changes) {
-      await this.activityRepository.create({
-        taskId,
-        actorId: userId,
-        action: "task.updated",
-        field: change.field,
-        beforeValue: change.beforeValue,
-        afterValue: change.afterValue,
-      });
-    }
-
-    await this.redisService.deleteByPrefix(`tasks:${existing.projectId}:`);
-    this.realtimeService.publishTaskEvent({ projectId: existing.projectId, taskId, action: "updated" });
+    await this.taskEventsService.publish({
+      type: "task.updated",
+      projectId: existing.projectId,
+      taskId,
+      actorId: userId,
+      changes,
+    });
 
     return mapTaskDetails(updated);
   }
@@ -108,15 +100,13 @@ export class TasksService {
 
     const comment = await this.commentsRepository.create(taskId, userId, body);
 
-    await this.activityRepository.create({
+    await this.taskEventsService.publish({
+      type: "task.commented",
+      projectId: existing.projectId,
       taskId,
       actorId: userId,
-      action: "task.commented",
-      afterValue: body,
+      body,
     });
-
-    await this.redisService.deleteByPrefix(`tasks:${existing.projectId}:`);
-    this.realtimeService.publishTaskEvent({ projectId: existing.projectId, taskId, action: "commented" });
 
     return mapComment(comment);
   }
