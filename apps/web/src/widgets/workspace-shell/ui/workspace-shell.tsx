@@ -5,15 +5,22 @@ import type { Route } from "next";
 import { usePathname, useRouter } from "next/navigation";
 import { type ReactNode, useState } from "react";
 import type { ProjectDto } from "@tracker/types";
-import { Badge, Button, Select } from "@tracker/ui";
+import { Badge, Button } from "@tracker/ui";
 import clsx from "clsx";
 import { SignInForm } from "@/features/auth/ui/sign-in-form";
 import { ProjectCreate } from "@/features/project-create/ui/project-create";
-import { ThemeToggle } from "@/features/theme-toggle/ui/theme-toggle";
 import { SkeletonBoard } from "@/shared/ui/skeleton-board";
 import { formatRelativeDate } from "@/shared/lib/utils/date";
-import { BellIcon, HelpIcon, ProjectsIcon, SettingsIcon, UserIcon } from "@/shared/ui/tracker-icons";
-import { workspaceNavItems } from "@/widgets/workspace-shell/config/navigation";
+import {
+  ActivityIcon,
+  BoardIcon,
+  GoalIcon,
+  HistoryIcon,
+  ListIcon,
+  ProjectsIcon,
+  QueueIcon,
+  UserIcon,
+} from "@/shared/ui/tracker-icons";
 import { countByStatus, getCompletion, taskKey } from "@/widgets/workspace-shell/lib/task-utils";
 import { useWorkspaceData } from "@/widgets/workspace-shell/model/use-workspace-data";
 import type { WorkspaceData } from "@/widgets/workspace-shell/model/types";
@@ -36,23 +43,14 @@ function getInitials(value: string): string {
   return initials || "TR";
 }
 
-type SidebarPanel = "home" | "tasks" | "boards" | "analytics" | "projects" | "notifications" | "help" | "settings";
+type SidebarPanel = "tasks" | "projects" | "goals" | "queues" | "boards" | "dashboards" | "history";
 
-function getPanelByRoute(href: Route): SidebarPanel {
-  if (href === "/boards") {
-    return "boards";
-  }
-
-  if (href === "/tasks") {
-    return "tasks";
-  }
-
-  if (href === "/analytics") {
-    return "analytics";
-  }
-
-  return "home";
-}
+const roleLabels: Record<string, string> = {
+  ADMIN: "Администратор",
+  USER: "Участник",
+  OWNER: "Владелец",
+  MEMBER: "Участник",
+};
 
 function ProjectSwitcher({
   projects,
@@ -101,8 +99,8 @@ function WorkspaceSidebar({
   const pathname = usePathname();
   const router = useRouter();
   const [activePanel, setActivePanel] = useState<SidebarPanel | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
   const clearSession = useUiStore((state) => state.clearSession);
-  const setSelectedOrganizationId = useUiStore((state) => state.setSelectedOrganizationId);
   const setSelectedProjectId = useUiStore((state) => state.setSelectedProjectId);
 
   const navigateTo = (href: Route): void => {
@@ -117,27 +115,58 @@ function WorkspaceSidebar({
   };
 
   const railItems = [
-    ...workspaceNavItems.map((item) => ({
-      id: item.href,
-      label: item.label,
-      icon: item.icon,
-      active: item.match(pathname) || activePanel === getPanelByRoute(item.href),
-      onClick: () => setActivePanel(getPanelByRoute(item.href)),
-    })),
+    {
+      id: "tasks",
+      label: "Задачи",
+      icon: ListIcon,
+      active: pathname.startsWith("/tasks") || activePanel === "tasks",
+      onClick: () => setActivePanel("tasks"),
+    },
     {
       id: "projects",
-      label: "Проекты",
+      label: "Проекты и портфели",
       icon: ProjectsIcon,
       active: activePanel === "projects",
       onClick: () => setActivePanel("projects"),
     },
+    {
+      id: "goals",
+      label: "Цели",
+      icon: GoalIcon,
+      active: activePanel === "goals",
+      onClick: () => setActivePanel("goals"),
+    },
+    {
+      id: "queues",
+      label: "Очереди",
+      icon: QueueIcon,
+      active: activePanel === "queues",
+      onClick: () => setActivePanel("queues"),
+    },
+    {
+      id: "boards",
+      label: "Доски задач",
+      icon: BoardIcon,
+      active: pathname.startsWith("/boards") || activePanel === "boards",
+      onClick: () => setActivePanel("boards"),
+    },
+    {
+      id: "dashboards",
+      label: "Дашборды и отчёты",
+      icon: ActivityIcon,
+      active: pathname.startsWith("/analytics") || activePanel === "dashboards",
+      onClick: () => setActivePanel("dashboards"),
+    },
+    {
+      id: "history",
+      label: "История",
+      icon: HistoryIcon,
+      active: activePanel === "history",
+      onClick: () => setActivePanel("history"),
+    },
   ];
 
-  const utilityItems = [
-    { id: "notifications", label: "Уведомления", icon: BellIcon, active: activePanel === "notifications", onClick: () => setActivePanel("notifications") },
-    { id: "help", label: "Помощь", icon: HelpIcon, active: activePanel === "help", onClick: () => setActivePanel("help") },
-    { id: "settings", label: "Настройки", icon: SettingsIcon, active: activePanel === "settings", onClick: () => setActivePanel("settings") },
-  ];
+  const teamRole = roleLabels[data.organizationRole ?? data.userRole] ?? data.organizationRole ?? data.userRole;
 
   return (
     <>
@@ -168,35 +197,42 @@ function WorkspaceSidebar({
           })}
         </nav>
 
-        <div className="flex flex-col items-center gap-2">
-          {utilityItems.map((item) => {
-            const Icon = item.icon;
-
-            return (
-              <button
-                key={item.id}
-                type="button"
-                title={item.label}
-                aria-label={item.label}
-                onClick={item.onClick}
-                className={clsx(
-                  "grid h-10 w-10 place-items-center rounded-2xl transition",
-                  item.active ? "bg-[#111827] text-white" : "text-[#2f333b] hover:bg-white hover:text-[#111827]",
-                )}
-              >
-                <Icon size={20} />
-              </button>
-            );
-          })}
+        <div className="relative flex flex-col items-center gap-2">
           <button
             type="button"
             title={data.userName}
             aria-label={data.userName}
-            onClick={() => setActivePanel("settings")}
-            className="mt-2 grid h-11 w-11 place-items-center rounded-full border border-white bg-[#111827] text-white shadow-sm"
+            onClick={() => setProfileOpen((value) => !value)}
+            className={clsx(
+              "mt-2 grid h-11 w-11 place-items-center rounded-full border border-white bg-[#111827] text-white shadow-sm transition",
+              profileOpen ? "ring-2 ring-[#3f7cf4]/40" : "hover:bg-[#020617]",
+            )}
           >
             <UserIcon size={19} />
           </button>
+
+          {profileOpen ? (
+            <div className="absolute bottom-0 left-[58px] z-50 w-[320px] rounded-3xl border border-black/[0.08] bg-white p-4 text-text shadow-[0_22px_70px_rgba(15,23,42,0.20)]">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">{data.userName}</p>
+                  <p className="mt-1 truncate text-xs text-text/44">{data.userEmail}</p>
+                  <p className="mt-2 text-xs font-semibold text-text/56">Роль в команде: {teamRole}</p>
+                </div>
+                <Button type="button" variant="ghost" className="rounded-xl px-3 py-2 text-sm text-rose-600 hover:bg-rose-50" onClick={clearSession}>
+                  Выйти
+                </Button>
+              </div>
+              <button
+                type="button"
+                className="mt-4 w-full rounded-2xl border border-black/[0.08] px-4 py-3 text-left text-sm font-semibold text-text transition hover:bg-black/[0.035]"
+                onClick={clearSession}
+              >
+                Добавить пользователя
+                <span className="mt-1 block text-xs font-normal text-text/44">Выйти на экран входа и авторизоваться ещё раз.</span>
+              </button>
+            </div>
+          ) : null}
         </div>
       </aside>
 
@@ -218,26 +254,6 @@ function WorkspaceSidebar({
                 Закрыть
               </button>
             </div>
-
-            {activePanel === "home" ? (
-              <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-text/36">Главная</p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-text">Сводка проекта</h2>
-            <div className="mt-6 border-y border-black/[0.08] py-5">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-text/48">{data.activeProject?.name ?? "Проект не выбран"}</span>
-                <span className="font-semibold text-text">{getCompletion(data.tasks)}%</span>
-              </div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-black/[0.08]">
-                <div className="h-full rounded-full bg-[#111827]" style={{ width: `${getCompletion(data.tasks)}%` }} />
-              </div>
-              <p className="mt-4 text-sm leading-6 text-text/56">Всего задач: {data.tasks.length}. В работе: {countByStatus(data.tasks, "IN_PROGRESS")}.</p>
-            </div>
-            <Button type="button" variant="primary" className="mt-5 w-full rounded-xl bg-[#111827] py-3 hover:bg-[#020617]" onClick={() => navigateTo("/")}>
-              Открыть главную
-            </Button>
-          </div>
-        ) : null}
 
         {activePanel === "tasks" ? (
           <div>
@@ -278,25 +294,11 @@ function WorkspaceSidebar({
           </div>
         ) : null}
 
-        {activePanel === "analytics" ? (
-          <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-text/36">Аналитика</p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-text">Прогресс</h2>
-            <div className="mt-6 border-y border-black/[0.08] py-5">
-              <p className="text-6xl font-semibold tracking-[-0.06em] text-text">{getCompletion(data.tasks)}%</p>
-              <p className="mt-3 text-sm leading-6 text-text/56">Готовность по текущей выборке задач проекта.</p>
-            </div>
-            <Button type="button" variant="primary" className="mt-5 w-full rounded-xl bg-[#111827] py-3 hover:bg-[#020617]" onClick={() => navigateTo("/analytics")}>
-              Открыть аналитику
-            </Button>
-          </div>
-        ) : null}
-
         {activePanel === "projects" ? (
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-text/36">Проекты</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-text/36">Проекты и портфели</p>
             <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-text">Выбор проекта</h2>
-            <p className="mt-2 text-sm leading-6 text-text/52">Выберите проект, чтобы открыть список задач по нему.</p>
+            <p className="mt-2 text-sm leading-6 text-text/52">Выберите проект или портфель, чтобы открыть задачи по нему.</p>
             <div className="mt-6">
               <ProjectSwitcher projects={data.projects} selectedProjectId={data.selectedProjectId} onSelect={selectProject} />
             </div>
@@ -308,66 +310,67 @@ function WorkspaceSidebar({
           </div>
         ) : null}
 
-        {activePanel === "notifications" ? (
+        {activePanel === "goals" ? (
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-text/36">Уведомления</p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-text">События</h2>
+            <p className="text-xs uppercase tracking-[0.18em] text-text/36">Цели</p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-text">Цели команды</h2>
             <div className="mt-6 border-y border-black/[0.08] py-5 text-sm leading-6 text-text/56">
-              Новых уведомлений нет. Изменения задач приходят через realtime и сразу обновляют текущие экраны.
+              Цели будут связывать задачи с результатами команды. Сейчас можно использовать задачи с высоким приоритетом как ближайший фокус.
             </div>
+            <Button type="button" variant="primary" className="mt-5 w-full rounded-xl bg-[#111827] py-3 hover:bg-[#020617]" onClick={() => navigateTo("/tasks")}>
+              Смотреть фокусные задачи
+            </Button>
+          </div>
+        ) : null}
+
+        {activePanel === "queues" ? (
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-text/36">Очереди</p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-text">Рабочие очереди</h2>
+            <div className="mt-6 divide-y divide-black/[0.08] border-y border-black/[0.08]">
+              <button type="button" className="flex w-full items-center justify-between gap-3 py-3 text-left" onClick={() => navigateTo("/tasks")}>
+                <span className="text-sm font-semibold text-text">Мои задачи</span>
+                <span className="text-sm text-text/52">
+                  {data.tasks.filter((task) => task.assignee?.id === data.userId || task.creator.id === data.userId).length}
+                </span>
+              </button>
+              <button type="button" className="flex w-full items-center justify-between gap-3 py-3 text-left" onClick={() => navigateTo("/tasks")}>
+                <span className="text-sm font-semibold text-text">Без исполнителя</span>
+                <span className="text-sm text-text/52">{data.tasks.filter((task) => !task.assignee).length}</span>
+              </button>
+              <button type="button" className="flex w-full items-center justify-between gap-3 py-3 text-left" onClick={() => navigateTo("/tasks")}>
+                <span className="text-sm font-semibold text-text">На ревью</span>
+                <span className="text-sm text-text/52">{countByStatus(data.tasks, "REVIEW")}</span>
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {activePanel === "dashboards" ? (
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-text/36">Дашборд и отчёты</p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-text">Прогресс</h2>
+            <div className="mt-6 border-y border-black/[0.08] py-5">
+              <p className="text-6xl font-semibold tracking-[-0.06em] text-text">{getCompletion(data.tasks)}%</p>
+              <p className="mt-3 text-sm leading-6 text-text/56">Готовность по текущей выборке задач проекта.</p>
+            </div>
+            <Button type="button" variant="primary" className="mt-5 w-full rounded-xl bg-[#111827] py-3 hover:bg-[#020617]" onClick={() => navigateTo("/analytics")}>
+              Открыть отчёты
+            </Button>
+          </div>
+        ) : null}
+
+        {activePanel === "history" ? (
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-text/36">История</p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-text">Последние изменения</h2>
             <div className="mt-5 divide-y divide-black/[0.08] border-y border-black/[0.08]">
-              {data.tasks.slice(0, 4).map((task) => (
+              {data.tasks.slice(0, 6).map((task) => (
                 <Link key={task.id} href={`/tasks/${task.id}` as Route} className="block py-3 transition hover:bg-black/[0.025]" onClick={() => setActivePanel(null)}>
                   <p className="line-clamp-1 text-sm font-semibold text-text">{task.title}</p>
                   <p className="mt-1 text-xs text-text/42">Обновлено {formatRelativeDate(task.updatedAt)}</p>
                 </Link>
               ))}
-            </div>
-          </div>
-        ) : null}
-
-        {activePanel === "help" ? (
-          <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-text/36">Помощь</p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-text">Быстрые подсказки</h2>
-            <div className="mt-6 space-y-4 text-sm leading-6 text-text/58">
-              <p>Доски меняют статус задачи drag-and-drop.</p>
-              <p>Список задач удобен для triage и поиска.</p>
-              <p>Карточка задачи открывается отдельной страницей и сохраняет ссылку.</p>
-            </div>
-          </div>
-        ) : null}
-
-        {activePanel === "settings" ? (
-          <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-text/36">Настройки</p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-text">Профиль</h2>
-            <div className="mt-6 flex items-center gap-3 border-y border-black/[0.08] py-5">
-              <div className="grid h-11 w-11 place-items-center rounded-full bg-[#111827] text-xs font-black text-white">{getInitials(data.userName)}</div>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-text">{data.userName}</p>
-                <p className="truncate text-xs text-text/42">{data.userEmail}</p>
-              </div>
-            </div>
-            <div className="mt-6">
-              <p className="mb-2 text-xs uppercase tracking-[0.18em] text-text/36">Организация</p>
-              <Select
-                value={data.activeOrganizationId ?? ""}
-                onChange={(event) => setSelectedOrganizationId(event.target.value)}
-                className="rounded-xl border-black/[0.12] bg-transparent py-2.5 text-sm"
-              >
-                {data.organizations.map((organization) => (
-                  <option key={organization.id} value={organization.id}>
-                    {organization.name}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <div className="mt-5 flex items-center gap-2">
-              <ThemeToggle />
-              <Button type="button" variant="ghost" className="flex-1 rounded-xl px-3" onClick={clearSession}>
-                Выйти
-              </Button>
             </div>
           </div>
         ) : null}
@@ -381,19 +384,19 @@ function WorkspaceSidebar({
             <span className="h-4 w-4 rounded-full border-4 border-white" />
           </span>
           <div className="flex items-center gap-1">
-            {workspaceNavItems.map((item) => {
+            {railItems.slice(0, 5).map((item) => {
               const Icon = item.icon;
-              const active = item.match(pathname);
 
               return (
-                <Link
-                  key={item.href}
-                  href={item.href}
+                <button
+                  key={item.id}
+                  type="button"
                   aria-label={item.label}
-                  className={clsx("grid h-9 w-9 place-items-center rounded-xl", active ? "bg-[#3f7cf4] text-white" : "text-text/54")}
+                  onClick={item.onClick}
+                  className={clsx("grid h-9 w-9 place-items-center rounded-xl", item.active ? "bg-[#3f7cf4] text-white" : "text-text/54")}
                 >
                   <Icon size={18} />
-                </Link>
+                </button>
               );
             })}
           </div>

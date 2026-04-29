@@ -14,4 +14,6 @@ export type WorkspaceData = {
   userId: string;
   userEmail: string;
   userName: string;
+  userRole: string;
+  organizationRole: string | null;
 };

@@ -114,5 +114,7 @@ export function useWorkspaceData(): WorkspaceData | null {
     userId: user.id,
     userEmail: user.email,
     userName: user.name,
+    userRole: user.role,
+    organizationRole: organizationsQuery.data?.find((organization) => organization.id === activeOrganizationId)?.role ?? null,
   };
 }
