@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Button, Card, Input } from "@tracker/ui";
@@ -8,6 +9,7 @@ import { ActivityIcon, BoardIcon, CheckCircleIcon, SparkIcon } from "@/shared/ui
 import { useUiStore } from "@/store/use-ui-store";
 
 export function SignInForm() {
+  const router = useRouter();
   const setSession = useUiStore((state) => state.setSession);
   const [email, setEmail] = useState("owner@tracker.local");
   const [password, setPassword] = useState("changeme123");
@@ -20,6 +22,7 @@ export function SignInForm() {
         refreshToken: session.tokens.refreshToken,
         user: session.user,
       });
+      router.replace("/pages/my");
     },
   });
 
