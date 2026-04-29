@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { usePathname, useRouter } from "next/navigation";
 import { type ReactNode, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ProjectDto } from "@tracker/types";
 import { Badge, Button } from "@tracker/ui";
 import clsx from "clsx";
@@ -17,10 +18,13 @@ import {
   GoalIcon,
   HistoryIcon,
   ListIcon,
+  PlusIcon,
   ProjectsIcon,
   QueueIcon,
   UserIcon,
 } from "@/shared/ui/tracker-icons";
+import { apiClient } from "@/lib/api-client";
+import { queryKeys } from "@/lib/query-keys";
 import { countByStatus, getCompletion, taskKey } from "@/widgets/workspace-shell/lib/task-utils";
 import { useWorkspaceData } from "@/widgets/workspace-shell/model/use-workspace-data";
 import type { WorkspaceData } from "@/widgets/workspace-shell/model/types";
@@ -100,6 +104,7 @@ function WorkspaceSidebar({
   const router = useRouter();
   const [activePanel, setActivePanel] = useState<SidebarPanel | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
+  const queryClient = useQueryClient();
   const clearSession = useUiStore((state) => state.clearSession);
   const setSelectedProjectId = useUiStore((state) => state.setSelectedProjectId);
 
@@ -113,6 +118,29 @@ function WorkspaceSidebar({
     router.push("/tasks");
     setActivePanel(null);
   };
+
+  const createTaskMutation = useMutation({
+    mutationFn: () => {
+      if (!data.selectedProjectId) {
+        throw new Error("Project is not selected");
+      }
+
+      return apiClient.createTask(data.selectedProjectId, {
+        title: `Новая задача ${new Date().toLocaleString("ru-RU")}`,
+        description: "Создано через кнопку быстрого создания в сайдбаре.",
+        priority: "MEDIUM",
+      });
+    },
+    onSuccess: async (task) => {
+      await queryClient.invalidateQueries({ queryKey: ["tasks", task.projectId] });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.task(task.id) });
+      router.push(`/tasks/${task.id}` as Route);
+      setActivePanel(null);
+    },
+    onError: () => {
+      setActivePanel("projects");
+    },
+  });
 
   const railItems = [
     {
@@ -175,7 +203,25 @@ function WorkspaceSidebar({
           <span className="h-5 w-5 rounded-full border-[5px] border-white" />
         </div>
 
-        <nav className="mt-8 flex flex-1 flex-col items-center gap-2">
+        <button
+          type="button"
+          title="Создать задачу"
+          aria-label="Создать задачу"
+          disabled={createTaskMutation.isPending}
+          onClick={() => {
+            if (!data.selectedProjectId) {
+              setActivePanel("projects");
+              return;
+            }
+
+            createTaskMutation.mutate();
+          }}
+          className="mt-7 grid h-11 w-11 place-items-center rounded-2xl bg-[#111827] text-white transition hover:bg-[#020617] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <PlusIcon size={22} />
+        </button>
+
+        <nav className="mt-4 flex flex-1 flex-col items-center gap-2">
           {railItems.map((item) => {
             const Icon = item.icon;
 

@@ -107,7 +107,7 @@ export const apiClient = {
     return request<TaskDetailsDto>(`/tasks/${taskId}`);
   },
   async createTask(projectId: string, input: Record<string, unknown>) {
-    return request(`/projects/${projectId}/tasks`, {
+    return request<TaskDetailsDto>(`/projects/${projectId}/tasks`, {
       method: "POST",
       body: JSON.stringify(input),
     });
