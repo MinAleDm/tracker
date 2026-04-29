@@ -61,7 +61,6 @@
 │       │   │   ├── board-filter
 │       │   │   ├── project-create
 │       │   │   ├── task-create
-│       │   │   ├── task-modal
 │       │   │   └── theme-toggle
 │       │   ├── lib
 │       │   ├── shared
@@ -93,24 +92,25 @@
 - `packages/db/prisma/schema.prisma` — Prisma-схема пользователей, организаций, проектов, задач, комментариев и refresh tokens.
 - `packages/db/prisma/seed.ts` — демо-данные для локального запуска.
 - `packages/types/src/index.ts` — общие DTO и контракты API.
-- `apps/web/src/widgets/app-shell/ui/app-shell.tsx` — основной рабочий экран трекера.
+- `apps/web/src/widgets/workspace-shell/ui/workspace-shell.tsx` — общий layout рабочего пространства, навигация, сайдбар, загрузка workspace-данных.
 - `apps/web/src/widgets/kanban-board/ui/kanban-board.tsx` — kanban-доска и drag-and-drop.
-- `apps/web/src/features/task-modal/ui/task-modal.tsx` — карточка задачи: редактирование, комментарии, история, связанные задачи.
+- `apps/web/src/widgets/task-detail/ui/task-detail-page.tsx` — отдельная страница задачи: редактирование, комментарии, история, связанные задачи.
 - `apps/web/src/lib/api-client.ts` — auth-aware API client с refresh-token retry.
 - `apps/web/src/lib/use-task-realtime.ts` — realtime-подписка на изменения задач.
 
 ## Frontend UX
 
-Новый фронтенд построен вокруг рабочего пространства `Tracker Pro`:
+Новый фронтенд построен вокруг routed workspace `Tracker Pro`, а не single-page переключателя вкладок:
 
-- `Обзор` — фокус очереди, статусы и последние изменения.
-- `Доска` — kanban workflow с переносом задач между статусами.
-- `Список` — плотное табличное представление для triage.
-- `Аналитика` — прогресс workflow и нагрузка команды.
-- `Task modal` — редактирование задачи, комментарии, история активности и контекст.
+- `/` — главная: фокус очереди, статусы и последние изменения.
+- `/boards` — отдельная kanban-доска с переносом задач между статусами.
+- `/tasks` — отдельный список задач для поиска, фильтрации и triage.
+- `/tasks/[taskId]` — полноценная страница задачи с редактированием, комментариями, историей активности и контекстом.
+- `/analytics` — отдельная аналитика workflow и нагрузки команды.
+- Раскрывающийся левый сайдбар — навигация, организация, проекты, создание проекта, тема и выход.
 - `Quick create` — быстрое создание задачи прямо из рабочей области.
 
-Старый legacy-слой удалён: больше нет demo localStorage repository, старого sliced Zustand-store, undo-toast и локальных entity-моделей старого single-app прототипа. Единственный клиентский store сейчас отвечает за сессию, выбранную организацию/проект, фильтры и открытую задачу.
+Старый legacy-слой удалён: больше нет demo localStorage repository, старого sliced Zustand-store, undo-toast, локальных entity-моделей старого single-app прототипа, SPA `AppShell` и task modal. Единственный клиентский store сейчас отвечает за сессию, выбранную организацию/проект и фильтры.
 
 ## Backend
 

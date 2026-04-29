@@ -15,7 +15,6 @@ interface UiState {
   status: TaskStatus | "ALL";
   priority: TaskPriority | "ALL";
   assigneeId: string | "ALL";
-  activeTaskId: string | null;
   setHydrated: (value: boolean) => void;
   setSession: (input: { accessToken: string; refreshToken: string; user: AuthUserDto }) => void;
   updateTokens: (input: { accessToken: string; refreshToken: string }) => void;
@@ -26,8 +25,6 @@ interface UiState {
   setStatus: (value: TaskStatus | "ALL") => void;
   setPriority: (value: TaskPriority | "ALL") => void;
   setAssigneeId: (value: string | "ALL") => void;
-  openTask: (taskId: string) => void;
-  closeTask: () => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -43,7 +40,6 @@ export const useUiStore = create<UiState>()(
       status: "ALL",
       priority: "ALL",
       assigneeId: "ALL",
-      activeTaskId: null,
       setHydrated: (hydrated) => set({ hydrated }),
       setSession: ({ accessToken, refreshToken, user }) =>
         set({
@@ -63,7 +59,6 @@ export const useUiStore = create<UiState>()(
           user: null,
           selectedOrganizationId: null,
           selectedProjectId: null,
-          activeTaskId: null,
         }),
       setSelectedOrganizationId: (selectedOrganizationId) =>
         set({
@@ -75,8 +70,6 @@ export const useUiStore = create<UiState>()(
       setStatus: (status) => set({ status }),
       setPriority: (priority) => set({ priority }),
       setAssigneeId: (assigneeId) => set({ assigneeId }),
-      openTask: (activeTaskId) => set({ activeTaskId }),
-      closeTask: () => set({ activeTaskId: null }),
     }),
     {
       name: "tracker-web-ui",

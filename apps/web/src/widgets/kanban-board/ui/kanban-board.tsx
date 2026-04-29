@@ -156,10 +156,9 @@ function BoardColumn({
   );
 }
 
-export function KanbanBoard({ tasks }: { tasks: TaskDto[] }) {
+export function KanbanBoard({ tasks, onOpenTask }: { tasks: TaskDto[]; onOpenTask: (taskId: string) => void }) {
   const queryClient = useQueryClient();
   const selectedProjectId = useUiStore((state) => state.selectedProjectId);
-  const openTask = useUiStore((state) => state.openTask);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -200,7 +199,7 @@ export function KanbanBoard({ tasks }: { tasks: TaskDto[] }) {
             key={status}
             status={status}
             tasks={tasks.filter((task) => task.status === status)}
-            onOpen={openTask}
+            onOpen={onOpenTask}
             isUpdating={mutation.isPending}
           />
         ))}
