@@ -21,6 +21,7 @@ import {
   PlusIcon,
   ProjectsIcon,
   QueueIcon,
+  SettingsIcon,
   UserIcon,
 } from "@/shared/ui/tracker-icons";
 import { apiClient } from "@/lib/api-client";
@@ -47,7 +48,7 @@ function getInitials(value: string): string {
   return initials || "TR";
 }
 
-type SidebarPanel = "tasks" | "projects" | "goals" | "queues" | "boards" | "dashboards" | "history";
+type SidebarPanel = "tasks" | "projects" | "goals" | "queues" | "boards" | "dashboards" | "history" | "settings";
 
 const roleLabels: Record<string, string> = {
   ADMIN: "Администратор",
@@ -246,6 +247,25 @@ function WorkspaceSidebar({
         <div className="relative flex flex-col items-center gap-2">
           <button
             type="button"
+            title="Настройки трекера"
+            aria-label="Настройки трекера"
+            aria-pressed={activePanel === "settings"}
+            onClick={() => {
+              setProfileOpen(false);
+              setActivePanel("settings");
+            }}
+            className={clsx(
+              "grid h-11 w-11 place-items-center rounded-2xl transition",
+              activePanel === "settings"
+                ? "bg-[#111827] text-white shadow-[0_10px_24px_rgba(15,23,42,0.22)]"
+                : "text-[#2f333b] hover:bg-white hover:text-[#111827]",
+            )}
+          >
+            <SettingsIcon size={21} />
+          </button>
+
+          <button
+            type="button"
             title={data.userName}
             aria-label={data.userName}
             onClick={() => setProfileOpen((value) => !value)}
@@ -418,6 +438,37 @@ function WorkspaceSidebar({
                 </Link>
               ))}
             </div>
+          </div>
+        ) : null}
+
+        {activePanel === "settings" ? (
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-text/36">Настройки</p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-text">Настройки трекера</h2>
+            <p className="mt-2 text-sm leading-6 text-text/52">
+              Быстрый доступ к рабочему контексту, проекту и основным разделам без расширения сайдбара.
+            </p>
+            <div className="mt-6 divide-y divide-black/[0.08] border-y border-black/[0.08]">
+              <div className="py-3">
+                <p className="text-xs uppercase tracking-[0.16em] text-text/36">Пользователь</p>
+                <p className="mt-1 text-sm font-semibold text-text">{data.userName}</p>
+                <p className="mt-1 text-xs text-text/44">Роль в команде: {teamRole}</p>
+              </div>
+              <div className="py-3">
+                <p className="text-xs uppercase tracking-[0.16em] text-text/36">Текущий проект</p>
+                <p className="mt-1 text-sm font-semibold text-text">{data.activeProject?.name ?? "Проект не выбран"}</p>
+                <p className="mt-1 text-xs text-text/44">
+                  {data.activeProject ? `Ключ проекта: ${data.activeProject.key}` : "Выберите проект через раздел проектов и портфелей."}
+                </p>
+              </div>
+              <button type="button" className="flex w-full items-center justify-between gap-3 py-3 text-left" onClick={() => setActivePanel("projects")}>
+                <span className="text-sm font-semibold text-text">Управлять проектами</span>
+                <span className="text-sm text-text/42">{data.projects.length}</span>
+              </button>
+            </div>
+            <Button type="button" variant="primary" className="mt-5 w-full rounded-xl bg-[#111827] py-3 hover:bg-[#020617]" onClick={() => navigateTo("/pages/my")}>
+              Открыть главную
+            </Button>
           </div>
         ) : null}
           </aside>
