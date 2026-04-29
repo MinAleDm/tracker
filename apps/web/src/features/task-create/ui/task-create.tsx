@@ -1,24 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { UserSummaryDto } from "@tracker/types";
+import type { TaskPriority, UserSummaryDto } from "@tracker/types";
 import { Button, Input, Select, Textarea } from "@tracker/ui";
 import { apiClient } from "@/lib/api-client";
-import { queryKeys } from "@/lib/query-keys";
+import { priorityLabels } from "@/lib/task-meta";
+import { PlusIcon } from "@/shared/ui/tracker-icons";
 
-export function TaskCreate({ projectId, users }: { projectId: string; users: UserSummaryDto[] }) {
+export function TaskCreate({
+  projectId,
+  users,
+  focusSignal = 0,
+}: {
+  projectId: string;
+  users: UserSummaryDto[];
+  focusSignal?: number;
+}) {
+  const titleRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [priority, setPriority] = useState("MEDIUM");
+  const [priority, setPriority] = useState<TaskPriority>("MEDIUM");
   const [assigneeId, setAssigneeId] = useState("");
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (focusSignal > 0) {
+      titleRef.current?.focus();
+    }
+  }, [focusSignal]);
 
   const mutation = useMutation({
     mutationFn: () =>
       apiClient.createTask(projectId, {
-        title,
-        description,
+        title: title.trim(),
+        description: description.trim(),
         priority,
         assigneeId: assigneeId || undefined,
       }),
@@ -28,45 +44,71 @@ export function TaskCreate({ projectId, users }: { projectId: string; users: Use
       setPriority("MEDIUM");
       setAssigneeId("");
       await queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+      titleRef.current?.focus();
     },
   });
 
   return (
-    <div className="rounded-2xl border border-border bg-muted/60 p-4">
-      <p className="text-xs uppercase tracking-[0.2em] text-muted">Create task</p>
-      <div className="mt-3 grid gap-3 lg:grid-cols-[2fr_1.2fr_1fr_auto]">
-        <Input placeholder="Task title" value={title} onChange={(event) => setTitle(event.target.value)} />
+    <form
+      className="rounded-[28px] border border-black/[0.06] bg-white p-4 shadow-[0_18px_45px_rgba(34,39,56,0.06)]"
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (title.trim().length >= 3) {
+          mutation.mutate();
+        }
+      }}
+    >
+      <div className="flex flex-col gap-3 xl:grid xl:grid-cols-[minmax(240px,1.25fr)_minmax(220px,1fr)_170px_220px_150px]">
+        <Input
+          ref={titleRef}
+          placeholder="Новая задача: что нужно сделать?"
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+          className="rounded-2xl border-[#d7dde8] bg-[#f8fafc] py-3.5 text-sm"
+        />
         <Textarea
           rows={1}
-          placeholder="Short description"
+          placeholder="Контекст, критерий готовности или ссылка"
           value={description}
           onChange={(event) => setDescription(event.target.value)}
+          className="min-h-[50px] rounded-2xl border-[#d7dde8] bg-[#f8fafc] py-3.5 text-sm"
         />
-        <div className="grid gap-3 md:grid-cols-2">
-          <Select value={priority} onChange={(event) => setPriority(event.target.value)}>
-            <option value="LOW">Low</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="HIGH">High</option>
-            <option value="URGENT">Urgent</option>
-          </Select>
-
-          <Select value={assigneeId} onChange={(event) => setAssigneeId(event.target.value)}>
-            <option value="">Unassigned</option>
-            {users.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.name}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <Button
-          variant="primary"
-          disabled={mutation.isPending || title.trim().length < 3}
-          onClick={() => mutation.mutate()}
+        <Select
+          value={priority}
+          onChange={(event) => setPriority(event.target.value as TaskPriority)}
+          className="rounded-2xl border-[#d7dde8] bg-[#f8fafc] py-3.5 text-sm"
         >
-          {mutation.isPending ? "Adding..." : "Add"}
+          {Object.entries(priorityLabels).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </Select>
+        <Select
+          value={assigneeId}
+          onChange={(event) => setAssigneeId(event.target.value)}
+          className="rounded-2xl border-[#d7dde8] bg-[#f8fafc] py-3.5 text-sm"
+        >
+          <option value="">Без исполнителя</option>
+          {users.map((user) => (
+            <option key={user.id} value={user.id}>
+              {user.name}
+            </option>
+          ))}
+        </Select>
+        <Button
+          type="submit"
+          variant="primary"
+          className="rounded-2xl bg-[#111827] px-5 py-3.5 text-sm hover:bg-[#020617]"
+          disabled={mutation.isPending || title.trim().length < 3}
+        >
+          <PlusIcon className="mr-2" size={18} />
+          {mutation.isPending ? "Создаю" : "Создать"}
         </Button>
       </div>
-    </div>
+      {mutation.error ? (
+        <p className="mt-3 text-sm font-medium text-rose-600">Не удалось создать задачу. Проверьте доступность API.</p>
+      ) : null}
+    </form>
   );
 }

@@ -11,6 +11,7 @@ export class RedisService implements OnModuleDestroy {
       lazyConnect: true,
     });
 
+    // Redis не должен валить старт API: кеш прогреется, когда сервис станет доступен.
     void this.client.connect().catch(() => undefined);
   }
 

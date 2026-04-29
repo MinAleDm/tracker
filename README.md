@@ -5,20 +5,32 @@
 [![Node](https://img.shields.io/badge/node-%3E%3D20.11.1-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![pnpm](https://img.shields.io/badge/pnpm-9.15.4-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
 
-Scalable task tracking monorepo inspired by Yandex Tracker, built with `pnpm` workspaces, `Next.js`, `NestJS`, `PostgreSQL`, `Prisma`, `Redis`, and Socket.IO.
+Профессиональный task tracker в монорепозитории: Next.js-фронтенд, NestJS API, PostgreSQL, Prisma, Redis, Socket.IO и Docker Compose. Проект ориентирован на рабочий UX современных трекеров: обзор, kanban-доска, список задач, аналитика, realtime-обновления и полноценная карточка задачи.
 
-## Stack
+## Стек
 
-- Monorepo: `pnpm workspaces`
-- Frontend: Next.js App Router, React Query, Zustand
-- Backend: NestJS, REST API, WebSocket gateway
-- Database: PostgreSQL + Prisma
-- Cache: Redis
-- Realtime: Socket.IO
-- Shared packages: database client, DTOs, UI primitives
-- Infra: Docker, Docker Compose, Nginx, GitHub Actions CI
+- Монорепозиторий: `pnpm workspaces`
+- Frontend: `Next.js App Router`, `React Query`, `Zustand`, `@dnd-kit`, `framer-motion`
+- Backend: `NestJS`, REST API, WebSocket gateway
+- Database: `PostgreSQL` + `Prisma`
+- Cache: `Redis`
+- Realtime: `Socket.IO`
+- Shared packages: Prisma client, DTO/types, UI primitives
+- Infra: Docker, Docker Compose, Nginx
 
-## Repository Layout
+## Что реализовано
+
+- JWT-аутентификация с refresh-token rotation.
+- Организации, проекты, пользователи и роли.
+- CRUD задач: статус, приоритет, исполнитель, описание, комментарии, активность.
+- Фильтрация задач по поиску, статусу, приоритету и исполнителю.
+- Kanban-доска с drag-and-drop сменой статуса.
+- Realtime-инвалидация задач через Socket.IO.
+- Redis-кеш для списков задач.
+- Docker-запуск всего окружения через Nginx.
+- API-first фронтенд без старого localStorage/demo-store слоя.
+
+## Структура
 
 ```text
 .
@@ -40,7 +52,7 @@ Scalable task tracking monorepo inspired by Yandex Tracker, built with `pnpm` wo
 │   │   │   ├── app.module.ts
 │   │   │   └── main.ts
 │   │   ├── Dockerfile
-│   │   └── .env.example
+│   │   └── docker-entrypoint.sh
 │   └── web
 │       ├── src
 │       │   ├── app
@@ -48,15 +60,14 @@ Scalable task tracking monorepo inspired by Yandex Tracker, built with `pnpm` wo
 │       │   │   ├── auth
 │       │   │   ├── board-filter
 │       │   │   ├── project-create
-│       │   │   ├── project-selector
 │       │   │   ├── task-create
-│       │   │   └── task-modal
+│       │   │   ├── task-modal
+│       │   │   └── theme-toggle
 │       │   ├── lib
 │       │   ├── shared
 │       │   ├── store
 │       │   └── widgets
-│       ├── Dockerfile
-│       └── .env.example
+│       └── Dockerfile
 ├── packages
 │   ├── db
 │   │   ├── prisma
@@ -73,61 +84,54 @@ Scalable task tracking monorepo inspired by Yandex Tracker, built with `pnpm` wo
 └── tsconfig.base.json
 ```
 
-## Key Files
+## Ключевые файлы
 
-- [apps/api/src/app.module.ts](/home/minkin/prikoli/tracker/apps/api/src/app.module.ts): Root NestJS composition, global config, middleware, and feature modules.
-- [apps/api/src/modules/auth/auth.service.ts](/home/minkin/prikoli/tracker/apps/api/src/modules/auth/auth.service.ts): JWT login, refresh-token rotation, and session retrieval.
-- [apps/api/src/modules/tasks/tasks.service.ts](/home/minkin/prikoli/tracker/apps/api/src/modules/tasks/tasks.service.ts): Task orchestration, Redis cache invalidation, activity logging, and realtime publishing.
-- [apps/api/src/modules/realtime/realtime.gateway.ts](/home/minkin/prikoli/tracker/apps/api/src/modules/realtime/realtime.gateway.ts): Socket.IO gateway with token validation and project-room subscriptions.
-- [packages/db/prisma/schema.prisma](/home/minkin/prikoli/tracker/packages/db/prisma/schema.prisma): Prisma schema for users, organizations, memberships, projects, tasks, comments, activity, and refresh tokens.
-- [packages/types/src/index.ts](/home/minkin/prikoli/tracker/packages/types/src/index.ts): Shared DTOs and cross-app contracts.
-- [apps/web/src/lib/api-client.ts](/home/minkin/prikoli/tracker/apps/web/src/lib/api-client.ts): Auth-aware frontend API client with refresh-token retry.
-- [apps/web/src/widgets/app-shell/ui/app-shell.tsx](/home/minkin/prikoli/tracker/apps/web/src/widgets/app-shell/ui/app-shell.tsx): Main dashboard shell, query orchestration, sidebar, filters, and authenticated layout.
-- [apps/web/src/widgets/kanban-board/ui/kanban-board.tsx](/home/minkin/prikoli/tracker/apps/web/src/widgets/kanban-board/ui/kanban-board.tsx): Kanban board with drag-and-drop status changes.
-- [apps/web/src/features/task-modal/ui/task-modal.tsx](/home/minkin/prikoli/tracker/apps/web/src/features/task-modal/ui/task-modal.tsx): Task detail modal with editing, comments, and activity stream.
-- [docker-compose.yml](/home/minkin/prikoli/tracker/docker-compose.yml): Local multi-container environment.
-- [nginx/default.conf](/home/minkin/prikoli/tracker/nginx/default.conf): Reverse proxy example for the web app, API, and Socket.IO upgrades.
+- `apps/api/src/app.module.ts` — композиция NestJS-модулей и middleware.
+- `apps/api/src/modules/auth/auth.service.ts` — login, refresh-token rotation и сессии.
+- `apps/api/src/modules/tasks/tasks.service.ts` — бизнес-логика задач, кеш, активность и realtime.
+- `apps/api/src/modules/realtime/realtime.gateway.ts` — Socket.IO namespace для задач.
+- `packages/db/prisma/schema.prisma` — Prisma-схема пользователей, организаций, проектов, задач, комментариев и refresh tokens.
+- `packages/db/prisma/seed.ts` — демо-данные для локального запуска.
+- `packages/types/src/index.ts` — общие DTO и контракты API.
+- `apps/web/src/widgets/app-shell/ui/app-shell.tsx` — основной рабочий экран трекера.
+- `apps/web/src/widgets/kanban-board/ui/kanban-board.tsx` — kanban-доска и drag-and-drop.
+- `apps/web/src/features/task-modal/ui/task-modal.tsx` — карточка задачи: редактирование, комментарии, история, связанные задачи.
+- `apps/web/src/lib/api-client.ts` — auth-aware API client с refresh-token retry.
+- `apps/web/src/lib/use-task-realtime.ts` — realtime-подписка на изменения задач.
 
-## Backend Design
+## Frontend UX
 
-### Clean architecture boundaries
+Новый фронтенд построен вокруг рабочего пространства `Tracker Pro`:
 
-- Controllers: request/response mapping only.
-- Services: business orchestration and policy checks.
-- Repositories: Prisma persistence logic.
-- Common infra: Prisma, Redis, auth guards, role checks, logging middleware.
+- `Обзор` — фокус очереди, статусы и последние изменения.
+- `Доска` — kanban workflow с переносом задач между статусами.
+- `Список` — плотное табличное представление для triage.
+- `Аналитика` — прогресс workflow и нагрузка команды.
+- `Task modal` — редактирование задачи, комментарии, история активности и контекст.
+- `Quick create` — быстрое создание задачи прямо из рабочей области.
 
-### Implemented features
+Старый legacy-слой удалён: больше нет demo localStorage repository, старого sliced Zustand-store, undo-toast и локальных entity-моделей старого single-app прототипа. Единственный клиентский store сейчас отвечает за сессию, выбранную организацию/проект, фильтры и открытую задачу.
 
-- JWT authentication with refresh-token rotation.
-- Users and organizations listing.
-- Project listing and creation.
-- Task CRUD basics with status, priority, assignee, description, and pagination.
-- Filtering and search on task collections.
-- Task comments.
-- Task activity log.
-- Realtime task change broadcasts over Socket.IO.
-- Redis caching for task list queries.
-- Role-based restriction for project creation.
+## Backend
 
-## Frontend Design
+Backend разделён на понятные слои:
 
-- Next.js App Router dashboard with sidebar and kanban layout.
-- React Query for server state.
-- Zustand for session state, selected org/project, filters, and active modal state.
-- Task creation flow and task detail modal.
-- Realtime invalidation of task queries when updates arrive.
-- Shared UI primitives consumed from `packages/ui`.
+- Controllers отвечают за HTTP-контракты.
+- Services держат бизнес-логику и проверки доступа.
+- Repositories инкапсулируют Prisma-запросы.
+- Common-инфраструктура держит auth guards, Prisma, Redis и logging middleware.
 
-## Local Run
+API по умолчанию живёт под префиксом `/api`, Swagger доступен по `/api/docs`.
 
-### 1. Install dependencies
+## Локальный запуск без Docker
+
+1. Установить зависимости:
 
 ```bash
 pnpm install
 ```
 
-### 2. Configure environment
+2. Подготовить переменные окружения:
 
 ```bash
 cp .env.example .env
@@ -135,19 +139,20 @@ cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env.local
 ```
 
-Recommended local values:
+Рекомендуемые значения для локального режима:
 
-- `apps/api/.env`: keep `DATABASE_URL=postgresql://tracker:tracker@localhost:5432/tracker?schema=public`
-- `apps/web/.env.local`: set `NEXT_PUBLIC_API_URL=http://localhost:3001/api`
-- `apps/web/.env.local`: set `NEXT_PUBLIC_SOCKET_URL=http://localhost:3001`
+- `apps/api/.env`: `DATABASE_URL=postgresql://tracker:tracker@localhost:5432/tracker?schema=public`
+- `apps/api/.env`: `REDIS_URL=redis://localhost:6379`
+- `apps/web/.env.local`: `NEXT_PUBLIC_API_URL=http://localhost:3001/api`
+- `apps/web/.env.local`: `NEXT_PUBLIC_SOCKET_URL=http://localhost:3001`
 
-### 3. Start PostgreSQL and Redis
+3. Запустить PostgreSQL и Redis:
 
 ```bash
 docker compose up -d postgres redis
 ```
 
-### 4. Generate Prisma client and apply database schema
+4. Подготовить базу:
 
 ```bash
 pnpm db:generate
@@ -155,75 +160,73 @@ pnpm db:migrate
 pnpm db:seed
 ```
 
-### 5. Start the apps
+5. Запустить приложения:
 
 ```bash
 pnpm dev
 ```
 
-Default URLs:
+Локальные адреса:
 
 - Web: `http://localhost:3000`
 - API: `http://localhost:3001/api`
 - Swagger: `http://localhost:3001/api/docs`
 
-Demo login:
+Демо-доступ:
 
 - Email: `owner@tracker.local`
 - Password: `changeme123`
 
-## Docker Run
+## Docker-запуск
 
 ```bash
-docker compose up --build
+docker compose up --build -d
 ```
 
-Endpoints in container mode:
+Адреса в Docker-режиме:
 
 - Nginx entrypoint: `http://localhost:8080`
-- Web: proxied through Nginx
-- API: proxied through `/api`
+- Web: `http://localhost:8080`
+- API: `http://localhost:8080/api`
+- Socket.IO: `http://localhost:8080/socket.io`
 
-## Deployment Guide
-
-### Option 1. Single VM with Docker Compose
-
-1. Provision a Linux host with Docker and Docker Compose.
-2. Copy the repo and create a production `.env`.
-3. Set strong JWT secrets and production database credentials.
-4. Update `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_SOCKET_URL` for your public domain.
-5. Run `docker compose up -d --build`.
-6. Put TLS in front of Nginx with your preferred ingress or reverse proxy.
-
-### Option 2. Managed services
-
-1. Deploy PostgreSQL and Redis to managed services.
-2. Build `apps/api` and `apps/web` as separate containers.
-3. Run Prisma migrations during release:
+API-контейнер при старте применяет Prisma schema через `prisma db push` и засевает демо-данные. Для остановки и очистки volume:
 
 ```bash
-pnpm db:generate
-pnpm --filter @tracker/db prisma:migrate
-pnpm db:seed
+docker compose down -v
 ```
 
-4. Route `/api` and `/socket.io` to the API service.
-5. Route `/` to the Next.js web service.
-6. Set `CORS_ORIGIN` to the exact public frontend origin.
+## Проверки
 
-### Operational notes
+```bash
+pnpm typecheck
+pnpm test
+pnpm build
+```
 
-- Keep refresh-token secrets separate from access-token secrets.
-- Run Prisma migrations before shifting traffic to a new API build.
-- Use sticky sessions only if you later move realtime state beyond a single API instance; for horizontal scaling, introduce a Socket.IO Redis adapter.
-- Replace the seed credentials in non-development environments.
+Отдельно для фронтенда:
 
-## Commands
+```bash
+pnpm --filter @tracker/web typecheck
+pnpm --filter @tracker/web build
+```
+
+Smoke-check после Docker:
+
+```bash
+curl -i http://localhost:8080/
+curl -i -X POST http://localhost:8080/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"owner@tracker.local","password":"changeme123"}'
+```
+
+## Команды
 
 ```bash
 pnpm dev
 pnpm build
 pnpm typecheck
+pnpm test
 pnpm db:generate
 pnpm db:migrate
 pnpm db:seed
@@ -231,7 +234,30 @@ pnpm docker:up
 pnpm docker:down
 ```
 
-## Notes
+## Правила проекта
 
-- This repository is scaffolded to be production-oriented, but dependency installation and runtime verification still need to happen in the target environment.
-- The existing UI from the original single-app project was reorganized into `apps/web` and reworked to use the new API contract.
+- Комментарии в коде пишем на русском языке.
+- Не возвращаем legacy localStorage/demo-store слой во фронтенд.
+- Frontend должен работать через API-контракты из `packages/types`.
+- Для задач с данными сначала обновляем backend/DTO, затем frontend.
+- Prisma warning про `package.json#prisma` пока не блокирует запуск, но перед переходом на Prisma 7 конфигурацию нужно вынести в `prisma.config.ts`.
+
+## Деплой
+
+### Один сервер с Docker Compose
+
+1. Подготовить Linux-хост с Docker и Docker Compose.
+2. Скопировать репозиторий и создать production `.env`.
+3. Задать сильные `JWT_ACCESS_SECRET` и `JWT_REFRESH_SECRET`.
+4. Настроить публичные `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SOCKET_URL` и `CORS_ORIGIN`.
+5. Выполнить `docker compose up -d --build`.
+6. Поставить TLS перед Nginx или заменить его внешним reverse proxy.
+
+### Managed services
+
+1. Вынести PostgreSQL и Redis в managed-сервисы.
+2. Собирать `apps/api` и `apps/web` как отдельные контейнеры.
+3. Прогонять Prisma migrations на релизе.
+4. Маршрутизировать `/api` и `/socket.io` в API.
+5. Маршрутизировать `/` в Next.js web.
+6. Держать `CORS_ORIGIN` равным публичному origin фронтенда.

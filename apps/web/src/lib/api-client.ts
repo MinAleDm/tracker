@@ -61,6 +61,7 @@ async function request<T>(path: string, init?: RequestInit, shouldRetry = true):
     headers,
   });
 
+  // При протухшем access token один раз обновляем пару токенов и повторяем исходный запрос.
   if (response.status === 401 && shouldRetry) {
     const token = await refreshTokens();
 

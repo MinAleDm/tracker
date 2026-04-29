@@ -1,4 +1,4 @@
-/** @type {import('next').NextConfig} */
+/** @type {import('next').NextConfig} Русская подсказка для редактора. */
 const nextConfig = {
   typedRoutes: true,
   eslint: {

@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { AuthModule } from "./modules/auth/auth.module";
 import { OrganizationsModule } from "./modules/organizations/organizations.module";
@@ -28,6 +28,6 @@ import { RealtimeModule } from "./modules/realtime/realtime.module";
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggingMiddleware).forRoutes("*");
+    consumer.apply(LoggingMiddleware).forRoutes({ path: "{*path}", method: RequestMethod.ALL });
   }
 }

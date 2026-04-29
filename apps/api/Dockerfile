@@ -17,6 +17,7 @@ COPY packages/ui/package.json packages/ui/package.json
 RUN pnpm install --no-frozen-lockfile
 
 COPY . .
+RUN pnpm install --filter @tracker/api... --no-frozen-lockfile
 
 RUN pnpm --filter @tracker/db prisma:generate
 RUN pnpm --filter @tracker/db build

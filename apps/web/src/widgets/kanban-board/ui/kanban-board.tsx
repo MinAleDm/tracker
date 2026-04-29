@@ -3,7 +3,7 @@
 import {
   DndContext,
   PointerSensor,
-  closestCenter,
+  closestCorners,
   useDraggable,
   useDroppable,
   useSensor,
@@ -14,50 +14,95 @@ import { CSS } from "@dnd-kit/utilities";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { TaskDto, TaskStatus } from "@tracker/types";
 import { Badge } from "@tracker/ui";
+import clsx from "clsx";
 import { motion } from "framer-motion";
 import { apiClient } from "@/lib/api-client";
 import { queryKeys } from "@/lib/query-keys";
-import { priorityLabels, priorityTone, statusLabels, statusOrder } from "@/lib/task-meta";
+import { priorityLabels, priorityTone, statusLabels, statusOrder, statusTone } from "@/lib/task-meta";
+import { formatRelativeDate } from "@/shared/lib/utils/date";
+import { CommentIcon, UserIcon } from "@/shared/ui/tracker-icons";
 import { useUiStore } from "@/store/use-ui-store";
 
-function TaskCard({
-  task,
-  onOpen,
-}: {
-  task: TaskDto;
-  onOpen: (taskId: string) => void;
-}) {
+const columnStyles: Record<TaskStatus, string> = {
+  TODO: "from-slate-100 to-white",
+  IN_PROGRESS: "from-sky-100 to-white",
+  REVIEW: "from-amber-100 to-white",
+  DONE: "from-emerald-100 to-white",
+};
+
+function getInitials(value: string): string {
+  return value
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() || "UN";
+}
+
+function TaskCard({ task, onOpen }: { task: TaskDto; onOpen: (taskId: string) => void }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: task.id,
     data: { status: task.status },
   });
 
-  const style = {
-    transform: CSS.Translate.toString(transform),
-  };
-
   return (
-    <motion.button
+    <motion.article
       layout
       ref={setNodeRef}
-      type="button"
-      style={style}
-      {...listeners}
-      {...attributes}
-      onClick={() => onOpen(task.id)}
-      className="w-full rounded-xl border border-border bg-card p-3 text-left shadow-sm transition hover:shadow-soft"
-      animate={{ opacity: isDragging ? 0.7 : 1 }}
+      style={{ transform: CSS.Translate.toString(transform) }}
+      animate={{ opacity: isDragging ? 0.58 : 1, scale: isDragging ? 1.015 : 1 }}
+      transition={{ duration: 0.16 }}
+      className={clsx(
+        "group rounded-[26px] border border-black/[0.06] bg-white p-4 text-left shadow-[0_18px_36px_rgba(34,39,56,0.08)] transition",
+        isDragging ? "z-20 cursor-grabbing ring-2 ring-accent/30" : "hover:-translate-y-0.5 hover:shadow-[0_22px_48px_rgba(34,39,56,0.12)]",
+      )}
     >
-      <div className="mb-2 flex items-start justify-between gap-2">
-        <p className="line-clamp-2 text-sm font-semibold">{task.title}</p>
-        <Badge tone={priorityTone[task.priority]}>{priorityLabels[task.priority]}</Badge>
-      </div>
-      <p className="line-clamp-2 text-xs text-muted">{task.description || "No description"}</p>
-      <div className="mt-3 flex items-center justify-between text-xs text-muted">
-        <span>{task.assignee?.name ?? "Unassigned"}</span>
-        <span>{task.commentsCount} comments</span>
-      </div>
-    </motion.button>
+      <button
+        type="button"
+        className="block w-full text-left"
+        onClick={() => {
+          if (!isDragging) {
+            onOpen(task.id);
+          }
+        }}
+        {...listeners}
+        {...attributes}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-text/38">
+              {task.id.slice(-8).toUpperCase()}
+            </p>
+            <h3 className="mt-2 line-clamp-2 text-base font-semibold leading-6 text-text">{task.title}</h3>
+          </div>
+          <Badge tone={priorityTone[task.priority]}>{priorityLabels[task.priority]}</Badge>
+        </div>
+
+        <p className="mt-3 line-clamp-3 text-sm leading-6 text-text/56">{task.description || "Описание не заполнено"}</p>
+
+        <div className="mt-5 flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2">
+            <div className="grid h-8 w-8 place-items-center rounded-xl bg-[#111827] text-[11px] font-bold text-white">
+              {getInitials(task.assignee?.name ?? "UN")}
+            </div>
+            <span className="truncate text-xs font-medium text-text/60">{task.assignee?.name ?? "Не назначен"}</span>
+          </div>
+          <span className="inline-flex items-center gap-1.5 text-xs text-text/44">
+            <CommentIcon size={14} />
+            {task.commentsCount}
+          </span>
+        </div>
+
+        <div className="mt-4 flex items-center justify-between text-xs text-text/44">
+          <span>{formatRelativeDate(task.updatedAt)}</span>
+          <span className="inline-flex items-center gap-1.5">
+            <UserIcon size={14} />
+            {task.creator.name}
+          </span>
+        </div>
+      </button>
+    </motion.article>
   );
 }
 
@@ -65,30 +110,49 @@ function BoardColumn({
   status,
   tasks,
   onOpen,
+  isUpdating,
 }: {
   status: TaskStatus;
   tasks: TaskDto[];
   onOpen: (taskId: string) => void;
+  isUpdating: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
 
   return (
-    <motion.section
-      layout
+    <section
       ref={setNodeRef}
-      className={`rounded-2xl border border-border p-4 ${isOver ? "bg-muted/60" : "bg-card"}`}
+      className={clsx(
+        "min-h-[520px] rounded-[32px] border p-4 transition",
+        isOver ? "border-accent/30 bg-white shadow-[0_24px_70px_rgba(34,39,56,0.12)]" : "border-white/70 bg-gradient-to-b",
+        !isOver && columnStyles[status],
+      )}
     >
-      <header className="mb-4 flex items-center justify-between">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">{statusLabels[status]}</h3>
-        <span className="rounded-full bg-muted px-2 py-1 text-xs">{tasks.length}</span>
+      <header className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <Badge tone={statusTone[status]}>{statusLabels[status]}</Badge>
+          <p className="mt-3 text-sm leading-6 text-text/52">
+            {status === "TODO" ? "Новые и ожидающие triage" : null}
+            {status === "IN_PROGRESS" ? "Активная работа команды" : null}
+            {status === "REVIEW" ? "Проверка и приёмка результата" : null}
+            {status === "DONE" ? "Закрытые и доставленные задачи" : null}
+          </p>
+        </div>
+        <span className="rounded-2xl bg-white px-3 py-2 text-sm font-bold text-text shadow-sm">{tasks.length}</span>
       </header>
 
       <div className="space-y-3">
-        {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} onOpen={onOpen} />
-        ))}
+        {tasks.length === 0 ? (
+          <div className="rounded-[26px] border border-dashed border-black/[0.08] bg-white/58 px-4 py-10 text-center text-sm leading-6 text-text/44">
+            Перетащите задачу сюда, чтобы сменить статус.
+          </div>
+        ) : (
+          tasks.map((task) => <TaskCard key={task.id} task={task} onOpen={onOpen} />)
+        )}
       </div>
-    </motion.section>
+
+      {isUpdating ? <p className="mt-4 text-center text-xs font-semibold text-accent">Синхронизирую статус...</p> : null}
+    </section>
   );
 }
 
@@ -99,13 +163,13 @@ export function KanbanBoard({ tasks }: { tasks: TaskDto[] }) {
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { distance: 4 },
+      activationConstraint: { distance: 8 },
     }),
   );
 
   const mutation = useMutation({
-    mutationFn: ({ taskId, status }: { taskId: string; status: TaskStatus }) =>
-      apiClient.updateTask(taskId, { status }),
+    // Перетаскивание сразу сохраняет статус в API, а realtime разнесёт изменение другим клиентам.
+    mutationFn: ({ taskId, status }: { taskId: string; status: TaskStatus }) => apiClient.updateTask(taskId, { status }),
     onSuccess: (task) => {
       void queryClient.invalidateQueries({ queryKey: ["tasks", task.projectId] });
       void queryClient.invalidateQueries({ queryKey: queryKeys.task(task.id) });
@@ -118,9 +182,10 @@ export function KanbanBoard({ tasks }: { tasks: TaskDto[] }) {
     }
 
     const taskId = String(active.id);
+    const currentStatus = active.data.current?.status as TaskStatus | undefined;
     const nextStatus = String(over.id) as TaskStatus;
 
-    if (!statusOrder.includes(nextStatus)) {
+    if (!statusOrder.includes(nextStatus) || currentStatus === nextStatus) {
       return;
     }
 
@@ -128,14 +193,15 @@ export function KanbanBoard({ tasks }: { tasks: TaskDto[] }) {
   };
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
         {statusOrder.map((status) => (
           <BoardColumn
             key={status}
             status={status}
             tasks={tasks.filter((task) => task.status === status)}
             onOpen={openTask}
+            isUpdating={mutation.isPending}
           />
         ))}
       </div>

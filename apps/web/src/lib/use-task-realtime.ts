@@ -23,6 +23,7 @@ export function useTaskRealtime(projectId: string | null) {
       },
     });
 
+    // Подписка держится на выбранном проекте, чтобы не инвалидировать лишние доски.
     socket.emit("project:subscribe", projectId);
     socket.on("task:changed", (event: { projectId: string; taskId: string }) => {
       void queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });

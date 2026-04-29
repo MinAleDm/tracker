@@ -1,9 +1,10 @@
 "use client";
 
-import type { UserSummaryDto } from "@tracker/types";
-import { Input, Select } from "@tracker/ui";
-import { useUiStore } from "@/store/use-ui-store";
+import type { TaskPriority, TaskStatus, UserSummaryDto } from "@tracker/types";
+import { Button, Input, Select } from "@tracker/ui";
 import { TASK_PRIORITY_OPTIONS, TASK_STATUS_OPTIONS } from "@/shared/config/task-options";
+import { SearchIcon } from "@/shared/ui/tracker-icons";
+import { useUiStore } from "@/store/use-ui-store";
 
 export function BoardFilter({ users }: { users: UserSummaryDto[] }) {
   const search = useUiStore((state) => state.search);
@@ -15,15 +16,25 @@ export function BoardFilter({ users }: { users: UserSummaryDto[] }) {
   const setPriority = useUiStore((state) => state.setPriority);
   const setAssigneeId = useUiStore((state) => state.setAssigneeId);
 
-  return (
-    <div className="grid gap-3 md:grid-cols-4">
-      <Input
-        placeholder="Search by title or description"
-        value={search}
-        onChange={(event) => setSearch(event.target.value)}
-      />
+  const hasFilters = search || status !== "ALL" || priority !== "ALL" || assigneeId !== "ALL";
 
-      <Select value={status} onChange={(event) => setStatus(event.target.value as typeof status)}>
+  return (
+    <div className="grid gap-3 xl:grid-cols-[minmax(260px,1fr)_180px_180px_220px_auto]">
+      <label className="relative block">
+        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-text/38" size={18} />
+        <Input
+          placeholder="Поиск по названию и описанию"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          className="rounded-2xl border-[#d7dde8] bg-white py-3.5 pl-11 text-sm shadow-sm"
+        />
+      </label>
+
+      <Select
+        value={status}
+        onChange={(event) => setStatus(event.target.value as TaskStatus | "ALL")}
+        className="rounded-2xl border-[#d7dde8] bg-white py-3.5 text-sm shadow-sm"
+      >
         {TASK_STATUS_OPTIONS.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
@@ -31,7 +42,11 @@ export function BoardFilter({ users }: { users: UserSummaryDto[] }) {
         ))}
       </Select>
 
-      <Select value={priority} onChange={(event) => setPriority(event.target.value as typeof priority)}>
+      <Select
+        value={priority}
+        onChange={(event) => setPriority(event.target.value as TaskPriority | "ALL")}
+        className="rounded-2xl border-[#d7dde8] bg-white py-3.5 text-sm shadow-sm"
+      >
         {TASK_PRIORITY_OPTIONS.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
@@ -39,15 +54,34 @@ export function BoardFilter({ users }: { users: UserSummaryDto[] }) {
         ))}
       </Select>
 
-      <Select value={assigneeId} onChange={(event) => setAssigneeId(event.target.value)}>
-        <option value="ALL">All assignees</option>
-        <option value="unassigned">Unassigned</option>
+      <Select
+        value={assigneeId}
+        onChange={(event) => setAssigneeId(event.target.value)}
+        className="rounded-2xl border-[#d7dde8] bg-white py-3.5 text-sm shadow-sm"
+      >
+        <option value="ALL">Все исполнители</option>
+        <option value="unassigned">Без исполнителя</option>
         {users.map((user) => (
           <option key={user.id} value={user.id}>
             {user.name}
           </option>
         ))}
       </Select>
+
+      <Button
+        type="button"
+        variant="ghost"
+        className="rounded-2xl px-5 py-3.5 text-sm"
+        disabled={!hasFilters}
+        onClick={() => {
+          setSearch("");
+          setStatus("ALL");
+          setPriority("ALL");
+          setAssigneeId("ALL");
+        }}
+      >
+        Сбросить
+      </Button>
     </div>
   );
 }

@@ -1,7 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 
 declare global {
-  // eslint-disable-next-line no-var
+  // Глобальный кеш нужен в dev-режиме, чтобы hot reload не плодил Prisma-подключения.
+  // eslint-disable-next-line no-var -- объявление глобального var требуется для расширения globalThis.
   var __trackerPrisma__: PrismaClient | undefined;
 }
 
