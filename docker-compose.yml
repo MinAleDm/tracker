@@ -35,7 +35,7 @@ services:
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-replace-me-refresh}
       JWT_ACCESS_TTL: 15m
       JWT_REFRESH_TTL: 7d
-      CORS_ORIGIN: http://localhost:${NGINX_PORT:-8080}
+      CORS_ORIGIN: http://localhost:${NGINX_PORT:-8080},http://127.0.0.1:${NGINX_PORT:-8080},http://localhost:${WEB_PORT:-3000},http://127.0.0.1:${WEB_PORT:-3000}
       DEMO_USER_EMAIL: ${DEMO_USER_EMAIL:-owner@tracker.local}
       DEMO_USER_PASSWORD: ${DEMO_USER_PASSWORD:-changeme123}
     ports:
