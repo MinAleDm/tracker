@@ -34,7 +34,7 @@ function taskKey(taskId: string): string {
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-2xl bg-[#f8fafc] px-4 py-3">
+    <div className="flex items-center justify-between gap-4 border-b border-black/[0.08] py-3">
       <span className="text-sm text-text/50">{label}</span>
       <span className="text-right text-sm font-semibold text-text">{value}</span>
     </div>
@@ -45,7 +45,7 @@ function RelatedTaskLink({ task }: { task: TaskDto }) {
   return (
     <Link
       href={`/tasks/${task.id}` as Route}
-      className="grid w-full gap-3 rounded-[26px] border border-black/[0.06] bg-white p-4 text-left transition hover:bg-[#f8fafc] md:grid-cols-[120px_minmax(0,1fr)_120px]"
+      className="grid w-full gap-3 border-b border-black/[0.08] py-4 text-left transition hover:bg-black/[0.025] md:grid-cols-[120px_minmax(0,1fr)_120px]"
     >
       <span className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-text/40">{taskKey(task.id)}</span>
       <span className="line-clamp-1 font-semibold text-text">{task.title}</span>
@@ -113,7 +113,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
 
   if (taskQuery.error) {
     return (
-      <Card className="border-black/[0.06] bg-white/82 p-8 text-center shadow-[0_18px_45px_rgba(34,39,56,0.06)]">
+      <Card className="rounded-none border-x-0 border-black/[0.08] bg-transparent p-8 text-center shadow-none">
         <p className="text-xl font-semibold text-text">Не удалось открыть задачу</p>
         <p className="mt-2 text-sm text-text/52">Проверьте доступ к проекту или вернитесь к списку задач.</p>
         <Link
@@ -128,7 +128,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
 
   if (taskQuery.isLoading || !taskQuery.data) {
     return (
-      <Card className="border-black/[0.06] bg-white/82 p-8 text-center shadow-[0_18px_45px_rgba(34,39,56,0.06)]">
+      <Card className="rounded-none border-x-0 border-black/[0.08] bg-transparent p-8 text-center shadow-none">
         <p className="text-xl font-semibold text-text">Загружаю задачу...</p>
         <p className="mt-2 text-sm text-text/52">Подтягиваем комментарии, историю и текущие поля.</p>
       </Card>
@@ -159,10 +159,10 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
   ];
 
   return (
-    <div className="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_360px]">
-      <section className="min-w-0 space-y-5">
-        <Card className="overflow-hidden border-black/[0.06] bg-white shadow-[0_18px_45px_rgba(34,39,56,0.06)]">
-          <header className="border-b border-black/[0.06] p-5 md:p-7">
+    <div className="grid gap-10 2xl:grid-cols-[minmax(0,1fr)_340px]">
+      <section className="min-w-0 space-y-8">
+        <Card className="rounded-none border-x-0 border-black/[0.08] bg-transparent shadow-none">
+          <header className="border-b border-black/[0.08] py-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
@@ -178,13 +178,13 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button type="button" variant="ghost" className="rounded-2xl px-4" onClick={() => navigator.clipboard?.writeText(task.id)}>
+                <Button type="button" variant="ghost" className="rounded-xl px-4" onClick={() => navigator.clipboard?.writeText(task.id)}>
                   <LinkIcon className="mr-2" size={18} />
                   ID
                 </Button>
                 <Link
                   href="/tasks"
-                  className="inline-flex items-center justify-center rounded-2xl border border-border bg-card px-5 py-2 text-sm font-medium transition hover:bg-muted"
+                  className="inline-flex items-center justify-center rounded-xl border border-border bg-transparent px-5 py-2 text-sm font-medium transition hover:bg-muted"
                 >
                   К списку
                 </Link>
@@ -192,17 +192,17 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
             </div>
           </header>
 
-          <div className="grid gap-5 p-5 md:p-7 xl:grid-cols-[minmax(0,1fr)_330px]">
-            <div className="space-y-5">
-              <Card className="border-black/[0.06] bg-[#f8fafc] p-5 shadow-none">
+          <div className="grid gap-8 py-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+            <div className="space-y-8">
+              <Card className="rounded-none border-x-0 border-black/[0.08] bg-transparent py-5 shadow-none">
                 <div className="grid gap-4 lg:grid-cols-2">
                   <label className="text-sm font-semibold text-text">
                     <span className="mb-2 block text-text/50">Название</span>
-                    <Input value={title} onChange={(event) => setTitle(event.target.value)} className="rounded-2xl bg-white py-3.5" />
+                    <Input value={title} onChange={(event) => setTitle(event.target.value)} className="rounded-xl bg-transparent py-3" />
                   </label>
                   <label className="text-sm font-semibold text-text">
                     <span className="mb-2 block text-text/50">Исполнитель</span>
-                    <Select value={assigneeId} onChange={(event) => setAssigneeId(event.target.value)} className="rounded-2xl bg-white py-3.5">
+                    <Select value={assigneeId} onChange={(event) => setAssigneeId(event.target.value)} className="rounded-xl bg-transparent py-3">
                       <option value="">Без исполнителя</option>
                       {users.map((user) => (
                         <option key={user.id} value={user.id}>
@@ -213,7 +213,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
                   </label>
                   <label className="text-sm font-semibold text-text">
                     <span className="mb-2 block text-text/50">Статус</span>
-                    <Select value={status} onChange={(event) => setStatus(event.target.value as TaskStatus)} className="rounded-2xl bg-white py-3.5">
+                    <Select value={status} onChange={(event) => setStatus(event.target.value as TaskStatus)} className="rounded-xl bg-transparent py-3">
                       {Object.entries(statusLabels).map(([value, label]) => (
                         <option key={value} value={value}>
                           {label}
@@ -223,7 +223,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
                   </label>
                   <label className="text-sm font-semibold text-text">
                     <span className="mb-2 block text-text/50">Приоритет</span>
-                    <Select value={priority} onChange={(event) => setPriority(event.target.value as TaskPriority)} className="rounded-2xl bg-white py-3.5">
+                    <Select value={priority} onChange={(event) => setPriority(event.target.value as TaskPriority)} className="rounded-xl bg-transparent py-3">
                       {Object.entries(priorityLabels).map(([value, label]) => (
                         <option key={value} value={value}>
                           {label}
@@ -239,7 +239,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
                     rows={9}
                     value={description}
                     onChange={(event) => setDescription(event.target.value)}
-                    className="rounded-2xl bg-white px-4 py-3.5 leading-6"
+                    className="rounded-xl bg-transparent px-4 py-3 leading-6"
                     placeholder="Что нужно сделать, какие ограничения и как понять, что задача готова?"
                   />
                 </label>
@@ -252,7 +252,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
                   <Button
                     type="button"
                     variant="primary"
-                    className="ml-auto rounded-2xl bg-[#111827] px-5 py-3 hover:bg-[#020617]"
+                    className="ml-auto rounded-xl bg-[#111827] px-5 py-3 hover:bg-[#020617]"
                     disabled={!dirty || title.trim().length < 3 || updateMutation.isPending}
                     onClick={() => updateMutation.mutate()}
                   >
@@ -261,16 +261,16 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
                 </div>
               </Card>
 
-              <Card className="overflow-hidden border-black/[0.06] bg-white shadow-none">
-                <div className="flex flex-wrap gap-2 border-b border-black/[0.06] p-3">
+              <Card className="rounded-none border-x-0 border-black/[0.08] bg-transparent shadow-none">
+                <div className="flex flex-wrap gap-2 border-b border-black/[0.08] py-3">
                   {tabs.map((item) => (
                     <button
                       key={item.id}
                       type="button"
                       onClick={() => setTab(item.id)}
                       className={clsx(
-                        "rounded-2xl px-4 py-2.5 text-sm font-semibold transition",
-                        tab === item.id ? "bg-[#111827] text-white" : "text-text/56 hover:bg-[#f8fafc] hover:text-text",
+                        "rounded-xl px-4 py-2.5 text-sm font-semibold transition",
+                        tab === item.id ? "bg-[#111827] text-white" : "text-text/56 hover:bg-black/[0.04] hover:text-text",
                       )}
                     >
                       {item.label} {item.count}
@@ -279,21 +279,21 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
                 </div>
 
                 {tab === "comments" ? (
-                  <div className="space-y-4 p-5">
-                    <div className="rounded-[26px] border border-black/[0.06] bg-[#f8fafc] p-4">
+                  <div className="space-y-4 py-5">
+                    <div className="border-b border-black/[0.08] pb-4">
                       <Textarea
                         rows={5}
                         placeholder="Напишите обновление, решение или вопрос команде"
                         value={comment}
                         onChange={(event) => setComment(event.target.value)}
-                        className="rounded-2xl bg-white px-4 py-3.5"
+                        className="rounded-xl bg-transparent px-4 py-3"
                       />
                       <div className="mt-3 flex items-center justify-between gap-3">
                         <p className="text-sm text-text/50">Комментарий попадёт в историю задачи.</p>
                         <Button
                           type="button"
                           variant="primary"
-                          className="rounded-2xl bg-[#111827] px-5 py-3 hover:bg-[#020617]"
+                          className="rounded-xl bg-[#111827] px-5 py-3 hover:bg-[#020617]"
                           disabled={commentMutation.isPending || comment.trim().length === 0}
                           onClick={() => commentMutation.mutate()}
                         >
@@ -303,13 +303,13 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
                     </div>
 
                     {task.comments.length === 0 ? (
-                      <div className="rounded-[26px] bg-[#f8fafc] px-4 py-8 text-center text-sm text-text/50">
+                      <div className="border-y border-black/[0.08] px-4 py-8 text-center text-sm text-text/50">
                         Комментариев пока нет. Зафиксируйте первый контекст.
                       </div>
                     ) : (
                       task.comments.map((item) => (
-                        <div key={item.id} className="flex gap-3 rounded-[26px] border border-black/[0.06] bg-white p-4">
-                          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#111827] text-xs font-bold text-white">
+                        <div key={item.id} className="flex gap-3 border-b border-black/[0.08] py-4">
+                          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#111827] text-xs font-bold text-white">
                             {getInitials(item.author.name)}
                           </div>
                           <div className="min-w-0 flex-1">
@@ -326,14 +326,14 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
                 ) : null}
 
                 {tab === "activity" ? (
-                  <div className="space-y-3 p-5">
+                  <div className="space-y-3 py-5">
                     {task.activity.length === 0 ? (
-                      <div className="rounded-[26px] bg-[#f8fafc] px-4 py-8 text-center text-sm text-text/50">
+                      <div className="border-y border-black/[0.08] px-4 py-8 text-center text-sm text-text/50">
                         История появится после изменений задачи.
                       </div>
                     ) : (
                       task.activity.map((item) => (
-                        <div key={item.id} className="rounded-[26px] border border-black/[0.06] bg-[#f8fafc] p-4">
+                        <div key={item.id} className="border-b border-black/[0.08] py-4">
                           <div className="flex items-start justify-between gap-3">
                             <div>
                               <p className="font-semibold text-text">{item.actor.name}</p>
@@ -357,9 +357,9 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
                 ) : null}
 
                 {tab === "related" ? (
-                  <div className="space-y-3 p-5">
+                  <div className="space-y-3 py-5">
                     {relatedTasks.length === 0 ? (
-                      <div className="rounded-[26px] bg-[#f8fafc] px-4 py-8 text-center text-sm text-text/50">
+                      <div className="border-y border-black/[0.08] px-4 py-8 text-center text-sm text-text/50">
                         Связанные задачи появятся по статусу, автору или исполнителю.
                       </div>
                     ) : (
@@ -371,7 +371,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
             </div>
 
             <aside className="space-y-4">
-              <Card className="border-black/[0.06] bg-white p-5 shadow-none">
+              <Card className="rounded-none border-x-0 border-black/[0.08] bg-transparent py-5 shadow-none">
                 <p className="text-lg font-semibold text-text">Паспорт задачи</p>
                 <div className="mt-4 space-y-3">
                   <DetailRow label="Проект" value={activeProject?.name ?? "Текущий проект"} />
@@ -381,7 +381,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
                 </div>
               </Card>
 
-              <Card className="border-black/[0.06] bg-[#111827] p-5 text-white shadow-none">
+              <Card className="rounded-xl border-black/[0.08] bg-[#111827] p-5 text-white shadow-none">
                 <div className="flex items-center gap-3">
                   <CheckCircleIcon className="text-emerald-300" />
                   <div>
@@ -389,7 +389,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
                     <p className="text-sm text-white/46">Текущий статус и следующий шаг.</p>
                   </div>
                 </div>
-                <div className="mt-5 rounded-3xl bg-white/10 p-4">
+                <div className="mt-5 rounded-xl bg-white/10 p-4">
                   <p className="text-sm text-white/48">Состояние</p>
                   <p className="mt-1 text-2xl font-semibold">{statusLabels[task.status]}</p>
                 </div>
@@ -399,8 +399,8 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
         </Card>
       </section>
 
-      <aside className="space-y-4">
-        <Card className="border-black/[0.06] bg-white p-5 shadow-none">
+      <aside className="space-y-6">
+        <Card className="rounded-none border-x-0 border-black/[0.08] bg-transparent py-5 shadow-none">
           <div className="flex items-center gap-3">
             <UserIcon className="text-accent" />
             <p className="text-lg font-semibold text-text">Люди</p>
@@ -419,7 +419,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
           </div>
         </Card>
 
-        <Card className="border-black/[0.06] bg-white p-5 shadow-none">
+        <Card className="rounded-none border-x-0 border-black/[0.08] bg-transparent py-5 shadow-none">
           <div className="flex items-center gap-3">
             <CommentIcon className="text-accent" />
             <p className="text-lg font-semibold text-text">Сводка</p>
@@ -431,7 +431,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
           </div>
         </Card>
 
-        <Card className="border-black/[0.06] bg-white p-5 shadow-none">
+        <Card className="rounded-none border-x-0 border-black/[0.08] bg-transparent py-5 shadow-none">
           <div className="flex items-center gap-3">
             <ActivityIcon className="text-accent" />
             <p className="text-lg font-semibold text-text">Описание</p>

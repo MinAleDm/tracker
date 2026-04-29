@@ -1,6 +1,7 @@
 "use client";
 
-import { AnalyticsContent, WorkspacePage } from "@/widgets/workspace-shell/ui/workspace-shell";
+import { AnalyticsContent } from "@/widgets/analytics/ui/analytics-content";
+import { WorkspacePage } from "@/widgets/workspace-shell/ui/workspace-shell";
 
 export default function AnalyticsPage() {
   return (

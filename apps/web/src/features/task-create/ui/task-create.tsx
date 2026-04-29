@@ -50,7 +50,7 @@ export function TaskCreate({
 
   return (
     <form
-      className="rounded-[28px] border border-black/[0.06] bg-white p-4 shadow-[0_18px_45px_rgba(34,39,56,0.06)]"
+      className="border-y border-black/[0.08] py-4"
       onSubmit={(event) => {
         event.preventDefault();
         if (title.trim().length >= 3) {
@@ -64,19 +64,19 @@ export function TaskCreate({
           placeholder="Новая задача: что нужно сделать?"
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          className="rounded-2xl border-[#d7dde8] bg-[#f8fafc] py-3.5 text-sm"
+          className="rounded-xl border-black/[0.12] bg-transparent py-3 text-sm"
         />
         <Textarea
           rows={1}
           placeholder="Контекст, критерий готовности или ссылка"
           value={description}
           onChange={(event) => setDescription(event.target.value)}
-          className="min-h-[50px] rounded-2xl border-[#d7dde8] bg-[#f8fafc] py-3.5 text-sm"
+          className="min-h-[48px] rounded-xl border-black/[0.12] bg-transparent py-3 text-sm"
         />
         <Select
           value={priority}
           onChange={(event) => setPriority(event.target.value as TaskPriority)}
-          className="rounded-2xl border-[#d7dde8] bg-[#f8fafc] py-3.5 text-sm"
+          className="rounded-xl border-black/[0.12] bg-transparent py-3 text-sm"
         >
           {Object.entries(priorityLabels).map(([value, label]) => (
             <option key={value} value={value}>
@@ -87,7 +87,7 @@ export function TaskCreate({
         <Select
           value={assigneeId}
           onChange={(event) => setAssigneeId(event.target.value)}
-          className="rounded-2xl border-[#d7dde8] bg-[#f8fafc] py-3.5 text-sm"
+          className="rounded-xl border-black/[0.12] bg-transparent py-3 text-sm"
         >
           <option value="">Без исполнителя</option>
           {users.map((user) => (
@@ -99,7 +99,7 @@ export function TaskCreate({
         <Button
           type="submit"
           variant="primary"
-          className="rounded-2xl bg-[#111827] px-5 py-3.5 text-sm hover:bg-[#020617]"
+          className="rounded-xl bg-[#111827] px-4 py-3 text-sm hover:bg-[#020617]"
           disabled={mutation.isPending || title.trim().length < 3}
         >
           <PlusIcon className="mr-2" size={18} />

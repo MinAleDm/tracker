@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { TaskCreate } from "@/features/task-create/ui/task-create";
-import { OverviewContent, WorkspacePage } from "@/widgets/workspace-shell/ui/workspace-shell";
+import { OverviewContent } from "@/widgets/overview/ui/overview-content";
+import { WorkspacePage } from "@/widgets/workspace-shell/ui/workspace-shell";
 
 export default function Page() {
   const [focusSignal, setFocusSignal] = useState(0);

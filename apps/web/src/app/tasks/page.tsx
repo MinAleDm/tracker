@@ -4,7 +4,8 @@ import { useState } from "react";
 import clsx from "clsx";
 import { BoardFilter } from "@/features/board-filter/ui/board-filter";
 import { TaskCreate } from "@/features/task-create/ui/task-create";
-import { filterTasksByScope, type TaskScope, TasksTable, WorkspacePage } from "@/widgets/workspace-shell/ui/workspace-shell";
+import { TasksTable } from "@/widgets/tasks-table/ui/tasks-table";
+import { filterTasksByScope, type TaskScope, WorkspacePage } from "@/widgets/workspace-shell/ui/workspace-shell";
 
 const scopes: Array<{ id: TaskScope; label: string }> = [
   { id: "all", label: "Все" },

@@ -19,21 +19,21 @@ export function BoardFilter({ users }: { users: UserSummaryDto[] }) {
   const hasFilters = search || status !== "ALL" || priority !== "ALL" || assigneeId !== "ALL";
 
   return (
-    <div className="grid gap-3 xl:grid-cols-[minmax(260px,1fr)_180px_180px_220px_auto]">
+    <div className="grid gap-3 border-y border-black/[0.08] py-4 xl:grid-cols-[minmax(260px,1fr)_180px_180px_220px_auto]">
       <label className="relative block">
         <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-text/38" size={18} />
         <Input
           placeholder="Поиск по названию и описанию"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          className="rounded-2xl border-[#d7dde8] bg-white py-3.5 pl-11 text-sm shadow-sm"
+          className="rounded-xl border-black/[0.12] bg-transparent py-3 pl-11 text-sm"
         />
       </label>
 
       <Select
         value={status}
         onChange={(event) => setStatus(event.target.value as TaskStatus | "ALL")}
-        className="rounded-2xl border-[#d7dde8] bg-white py-3.5 text-sm shadow-sm"
+        className="rounded-xl border-black/[0.12] bg-transparent py-3 text-sm"
       >
         {TASK_STATUS_OPTIONS.map((option) => (
           <option key={option.value} value={option.value}>
@@ -45,7 +45,7 @@ export function BoardFilter({ users }: { users: UserSummaryDto[] }) {
       <Select
         value={priority}
         onChange={(event) => setPriority(event.target.value as TaskPriority | "ALL")}
-        className="rounded-2xl border-[#d7dde8] bg-white py-3.5 text-sm shadow-sm"
+        className="rounded-xl border-black/[0.12] bg-transparent py-3 text-sm"
       >
         {TASK_PRIORITY_OPTIONS.map((option) => (
           <option key={option.value} value={option.value}>
@@ -57,7 +57,7 @@ export function BoardFilter({ users }: { users: UserSummaryDto[] }) {
       <Select
         value={assigneeId}
         onChange={(event) => setAssigneeId(event.target.value)}
-        className="rounded-2xl border-[#d7dde8] bg-white py-3.5 text-sm shadow-sm"
+        className="rounded-xl border-black/[0.12] bg-transparent py-3 text-sm"
       >
         <option value="ALL">Все исполнители</option>
         <option value="unassigned">Без исполнителя</option>
@@ -71,7 +71,7 @@ export function BoardFilter({ users }: { users: UserSummaryDto[] }) {
       <Button
         type="button"
         variant="ghost"
-        className="rounded-2xl px-5 py-3.5 text-sm"
+        className="rounded-xl px-4 py-3 text-sm"
         disabled={!hasFilters}
         onClick={() => {
           setSearch("");

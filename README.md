@@ -56,6 +56,9 @@
 │   └── web
 │       ├── src
 │       │   ├── app
+│       │   │   ├── analytics
+│       │   │   ├── boards
+│       │   │   └── tasks
 │       │   ├── features
 │       │   │   ├── auth
 │       │   │   ├── board-filter
@@ -66,6 +69,12 @@
 │       │   ├── shared
 │       │   ├── store
 │       │   └── widgets
+│       │       ├── analytics
+│       │       ├── kanban-board
+│       │       ├── overview
+│       │       ├── task-detail
+│       │       ├── tasks-table
+│       │       └── workspace-shell
 │       └── Dockerfile
 ├── packages
 │   ├── db
@@ -92,7 +101,12 @@
 - `packages/db/prisma/schema.prisma` — Prisma-схема пользователей, организаций, проектов, задач, комментариев и refresh tokens.
 - `packages/db/prisma/seed.ts` — демо-данные для локального запуска.
 - `packages/types/src/index.ts` — общие DTO и контракты API.
-- `apps/web/src/widgets/workspace-shell/ui/workspace-shell.tsx` — общий layout рабочего пространства, навигация, сайдбар, загрузка workspace-данных.
+- `apps/web/src/widgets/workspace-shell/ui/workspace-shell.tsx` — тонкий layout рабочего пространства, навигация и сайдбар.
+- `apps/web/src/widgets/workspace-shell/model/use-workspace-data.ts` — загрузка workspace-данных, выбор организации/проекта, фильтры и realtime.
+- `apps/web/src/widgets/workspace-shell/lib/task-utils.ts` — переиспользуемые вычисления по задачам без привязки к UI.
+- `apps/web/src/widgets/overview/ui/overview-content.tsx` — главная страница без монолитного shell-компонента.
+- `apps/web/src/widgets/tasks-table/ui/tasks-table.tsx` — список задач как отдельный масштабируемый виджет.
+- `apps/web/src/widgets/analytics/ui/analytics-content.tsx` — аналитика проекта как отдельный виджет.
 - `apps/web/src/widgets/kanban-board/ui/kanban-board.tsx` — kanban-доска и drag-and-drop.
 - `apps/web/src/widgets/task-detail/ui/task-detail-page.tsx` — отдельная страница задачи: редактирование, комментарии, история, связанные задачи.
 - `apps/web/src/lib/api-client.ts` — auth-aware API client с refresh-token retry.
@@ -109,8 +123,21 @@
 - `/analytics` — отдельная аналитика workflow и нагрузки команды.
 - Раскрывающийся левый сайдбар — навигация, организация, проекты, создание проекта, тема и выход.
 - `Quick create` — быстрое создание задачи прямо из рабочей области.
+- Облегчённый UI — меньше тяжёлых контейнеров, карточек и теней; основные экраны строятся на сетке, разделителях и рабочей типографике.
 
 Старый legacy-слой удалён: больше нет demo localStorage repository, старого sliced Zustand-store, undo-toast, локальных entity-моделей старого single-app прототипа, SPA `AppShell` и task modal. Единственный клиентский store сейчас отвечает за сессию, выбранную организацию/проект и фильтры.
+
+## Frontend Architecture
+
+Frontend следует простой масштабируемой схеме:
+
+- `app` — только маршруты и композиция страниц.
+- `features` — пользовательские действия: авторизация, фильтры, создание проекта/задачи.
+- `widgets` — крупные независимые секции экрана: workspace shell, overview, доска, список, аналитика, task detail.
+- `widgets/*/model` — data hooks и состояние конкретного виджета.
+- `widgets/*/lib` — чистые функции и вычисления.
+- `widgets/*/config` — навигация, статические настройки и декларативные списки.
+- `shared` — общие UI-иконки, конфиги и утилиты.
 
 ## Backend
 

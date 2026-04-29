@@ -23,13 +23,6 @@ import { formatRelativeDate } from "@/shared/lib/utils/date";
 import { CommentIcon, UserIcon } from "@/shared/ui/tracker-icons";
 import { useUiStore } from "@/store/use-ui-store";
 
-const columnStyles: Record<TaskStatus, string> = {
-  TODO: "from-slate-100 to-white",
-  IN_PROGRESS: "from-sky-100 to-white",
-  REVIEW: "from-amber-100 to-white",
-  DONE: "from-emerald-100 to-white",
-};
-
 function getInitials(value: string): string {
   return value
     .split(/\s+/)
@@ -54,8 +47,8 @@ function TaskCard({ task, onOpen }: { task: TaskDto; onOpen: (taskId: string) =>
       animate={{ opacity: isDragging ? 0.58 : 1, scale: isDragging ? 1.015 : 1 }}
       transition={{ duration: 0.16 }}
       className={clsx(
-        "group rounded-[26px] border border-black/[0.06] bg-white p-4 text-left shadow-[0_18px_36px_rgba(34,39,56,0.08)] transition",
-        isDragging ? "z-20 cursor-grabbing ring-2 ring-accent/30" : "hover:-translate-y-0.5 hover:shadow-[0_22px_48px_rgba(34,39,56,0.12)]",
+        "group border-b border-black/[0.08] py-4 text-left transition",
+        isDragging ? "z-20 cursor-grabbing bg-white/70 ring-2 ring-accent/30" : "hover:bg-black/[0.025]",
       )}
     >
       <button
@@ -83,7 +76,7 @@ function TaskCard({ task, onOpen }: { task: TaskDto; onOpen: (taskId: string) =>
 
         <div className="mt-5 flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2">
-            <div className="grid h-8 w-8 place-items-center rounded-xl bg-[#111827] text-[11px] font-bold text-white">
+            <div className="grid h-8 w-8 place-items-center rounded-lg bg-[#111827] text-[11px] font-bold text-white">
               {getInitials(task.assignee?.name ?? "UN")}
             </div>
             <span className="truncate text-xs font-medium text-text/60">{task.assignee?.name ?? "Не назначен"}</span>
@@ -123,9 +116,8 @@ function BoardColumn({
     <section
       ref={setNodeRef}
       className={clsx(
-        "min-h-[520px] rounded-[32px] border p-4 transition",
-        isOver ? "border-accent/30 bg-white shadow-[0_24px_70px_rgba(34,39,56,0.12)]" : "border-white/70 bg-gradient-to-b",
-        !isOver && columnStyles[status],
+        "min-h-[520px] border-t border-black/[0.08] py-4 transition",
+        isOver ? "bg-white/60 ring-2 ring-accent/20" : "bg-transparent",
       )}
     >
       <header className="mb-4 flex items-start justify-between gap-3">
@@ -138,12 +130,12 @@ function BoardColumn({
             {status === "DONE" ? "Закрытые и доставленные задачи" : null}
           </p>
         </div>
-        <span className="rounded-2xl bg-white px-3 py-2 text-sm font-bold text-text shadow-sm">{tasks.length}</span>
+        <span className="text-sm font-bold text-text">{tasks.length}</span>
       </header>
 
       <div className="space-y-3">
         {tasks.length === 0 ? (
-          <div className="rounded-[26px] border border-dashed border-black/[0.08] bg-white/58 px-4 py-10 text-center text-sm leading-6 text-text/44">
+          <div className="border-y border-dashed border-black/[0.08] px-4 py-10 text-center text-sm leading-6 text-text/44">
             Перетащите задачу сюда, чтобы сменить статус.
           </div>
         ) : (
@@ -193,7 +185,7 @@ export function KanbanBoard({ tasks, onOpenTask }: { tasks: TaskDto[]; onOpenTas
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-4">
         {statusOrder.map((status) => (
           <BoardColumn
             key={status}
