@@ -38,22 +38,6 @@ function getInitials(value: string): string {
 
 type SidebarPanel = "home" | "tasks" | "boards" | "analytics" | "projects" | "notifications" | "help" | "settings";
 
-function getPanelByPath(pathname: string): SidebarPanel {
-  if (pathname.startsWith("/boards")) {
-    return "boards";
-  }
-
-  if (pathname.startsWith("/tasks")) {
-    return "tasks";
-  }
-
-  if (pathname.startsWith("/analytics")) {
-    return "analytics";
-  }
-
-  return "home";
-}
-
 function getPanelByRoute(href: Route): SidebarPanel {
   if (href === "/boards") {
     return "boards";
@@ -116,19 +100,20 @@ function WorkspaceSidebar({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [activePanel, setActivePanel] = useState<SidebarPanel>(() => getPanelByPath(pathname));
+  const [activePanel, setActivePanel] = useState<SidebarPanel | null>(null);
   const clearSession = useUiStore((state) => state.clearSession);
   const setSelectedOrganizationId = useUiStore((state) => state.setSelectedOrganizationId);
   const setSelectedProjectId = useUiStore((state) => state.setSelectedProjectId);
 
-  const openRoutePanel = (href: Route, panel: SidebarPanel): void => {
+  const navigateTo = (href: Route): void => {
     router.push(href);
-    setActivePanel(panel);
+    setActivePanel(null);
   };
 
   const selectProject = (projectId: string): void => {
     setSelectedProjectId(projectId);
     router.push("/tasks");
+    setActivePanel(null);
   };
 
   const railItems = [
@@ -137,7 +122,7 @@ function WorkspaceSidebar({
       label: item.label,
       icon: item.icon,
       active: item.match(pathname) || activePanel === getPanelByRoute(item.href),
-      onClick: () => openRoutePanel(item.href, getPanelByRoute(item.href)),
+      onClick: () => setActivePanel(getPanelByRoute(item.href)),
     })),
     {
       id: "projects",
@@ -215,9 +200,27 @@ function WorkspaceSidebar({
         </div>
       </aside>
 
-      <aside className="sticky top-0 hidden h-screen w-[360px] shrink-0 overflow-hidden border-r border-black/[0.08] bg-white px-6 py-7 lg:block">
-        {activePanel === "home" ? (
-          <div>
+      {activePanel ? (
+        <div className="fixed inset-y-0 left-[72px] right-0 z-40 hidden lg:block">
+          <button
+            type="button"
+            aria-label="Закрыть панель"
+            className="absolute inset-0 cursor-default bg-[#111827]/38 backdrop-blur-[1px]"
+            onClick={() => setActivePanel(null)}
+          />
+          <aside className="relative h-screen w-[420px] overflow-hidden bg-white px-6 py-7 shadow-[26px_0_70px_rgba(15,23,42,0.22)]">
+            <div className="absolute right-4 top-4">
+              <button
+                type="button"
+                className="rounded-xl px-3 py-2 text-sm font-semibold text-text/52 transition hover:bg-black/[0.04] hover:text-text"
+                onClick={() => setActivePanel(null)}
+              >
+                Закрыть
+              </button>
+            </div>
+
+            {activePanel === "home" ? (
+              <div>
             <p className="text-xs uppercase tracking-[0.18em] text-text/36">Главная</p>
             <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-text">Сводка проекта</h2>
             <div className="mt-6 border-y border-black/[0.08] py-5">
@@ -230,6 +233,9 @@ function WorkspaceSidebar({
               </div>
               <p className="mt-4 text-sm leading-6 text-text/56">Всего задач: {data.tasks.length}. В работе: {countByStatus(data.tasks, "IN_PROGRESS")}.</p>
             </div>
+            <Button type="button" variant="primary" className="mt-5 w-full rounded-xl bg-[#111827] py-3 hover:bg-[#020617]" onClick={() => navigateTo("/")}>
+              Открыть главную
+            </Button>
           </div>
         ) : null}
 
@@ -239,7 +245,7 @@ function WorkspaceSidebar({
             <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-text">Мои задачи</h2>
             <div className="mt-6 divide-y divide-black/[0.08] border-y border-black/[0.08]">
               {data.tasks.filter((task) => task.assignee?.id === data.userId || task.creator.id === data.userId).slice(0, 8).map((task) => (
-                <Link key={task.id} href={`/tasks/${task.id}` as Route} className="block py-3 transition hover:bg-black/[0.025]">
+                <Link key={task.id} href={`/tasks/${task.id}` as Route} className="block py-3 transition hover:bg-black/[0.025]" onClick={() => setActivePanel(null)}>
                   <p className="line-clamp-1 text-sm font-semibold text-text">{task.title}</p>
                   <div className="mt-1 flex items-center justify-between gap-2">
                     <span className="font-mono text-xs uppercase tracking-[0.14em] text-text/36">{taskKey(task)}</span>
@@ -248,7 +254,7 @@ function WorkspaceSidebar({
                 </Link>
               ))}
             </div>
-            <Button type="button" variant="primary" className="mt-5 w-full rounded-xl bg-[#111827] py-3 hover:bg-[#020617]" onClick={() => router.push("/tasks")}>
+            <Button type="button" variant="primary" className="mt-5 w-full rounded-xl bg-[#111827] py-3 hover:bg-[#020617]" onClick={() => navigateTo("/tasks")}>
               Открыть список
             </Button>
           </div>
@@ -260,13 +266,13 @@ function WorkspaceSidebar({
             <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-text">Статусы</h2>
             <div className="mt-6 divide-y divide-black/[0.08] border-y border-black/[0.08]">
               {statusOrder.map((status) => (
-                <button key={status} type="button" className="flex w-full items-center justify-between gap-3 py-3 text-left" onClick={() => router.push("/boards")}>
+                <button key={status} type="button" className="flex w-full items-center justify-between gap-3 py-3 text-left" onClick={() => navigateTo("/boards")}>
                   <Badge tone={statusTone[status]}>{statusLabels[status]}</Badge>
                   <span className="text-sm font-semibold text-text">{countByStatus(data.tasks, status)}</span>
                 </button>
               ))}
             </div>
-            <Button type="button" variant="primary" className="mt-5 w-full rounded-xl bg-[#111827] py-3 hover:bg-[#020617]" onClick={() => router.push("/boards")}>
+            <Button type="button" variant="primary" className="mt-5 w-full rounded-xl bg-[#111827] py-3 hover:bg-[#020617]" onClick={() => navigateTo("/boards")}>
               Открыть доску
             </Button>
           </div>
@@ -280,7 +286,7 @@ function WorkspaceSidebar({
               <p className="text-6xl font-semibold tracking-[-0.06em] text-text">{getCompletion(data.tasks)}%</p>
               <p className="mt-3 text-sm leading-6 text-text/56">Готовность по текущей выборке задач проекта.</p>
             </div>
-            <Button type="button" variant="primary" className="mt-5 w-full rounded-xl bg-[#111827] py-3 hover:bg-[#020617]" onClick={() => router.push("/analytics")}>
+            <Button type="button" variant="primary" className="mt-5 w-full rounded-xl bg-[#111827] py-3 hover:bg-[#020617]" onClick={() => navigateTo("/analytics")}>
               Открыть аналитику
             </Button>
           </div>
@@ -311,7 +317,7 @@ function WorkspaceSidebar({
             </div>
             <div className="mt-5 divide-y divide-black/[0.08] border-y border-black/[0.08]">
               {data.tasks.slice(0, 4).map((task) => (
-                <Link key={task.id} href={`/tasks/${task.id}` as Route} className="block py-3 transition hover:bg-black/[0.025]">
+                <Link key={task.id} href={`/tasks/${task.id}` as Route} className="block py-3 transition hover:bg-black/[0.025]" onClick={() => setActivePanel(null)}>
                   <p className="line-clamp-1 text-sm font-semibold text-text">{task.title}</p>
                   <p className="mt-1 text-xs text-text/42">Обновлено {formatRelativeDate(task.updatedAt)}</p>
                 </Link>
@@ -365,7 +371,9 @@ function WorkspaceSidebar({
             </div>
           </div>
         ) : null}
-      </aside>
+          </aside>
+        </div>
+      ) : null}
 
       <div className="border-b border-black/[0.08] bg-white px-4 py-3 lg:hidden">
         <div className="flex items-center justify-between gap-3">
