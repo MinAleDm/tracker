@@ -196,6 +196,44 @@ function WorkspaceSidebar({
   ];
 
   const teamRole = roleLabels[data.organizationRole ?? data.userRole] ?? data.organizationRole ?? data.userRole;
+  const personalTasks = data.tasks.filter((task) => task.assignee?.id === data.userId || task.creator.id === data.userId);
+  const mobileRailItems = [
+    {
+      id: "tasks",
+      label: "Задачи",
+      icon: ListIcon,
+      active: pathname.startsWith("/tasks"),
+      onClick: () => navigateTo("/tasks"),
+    },
+    {
+      id: "projects",
+      label: "Проекты",
+      icon: ProjectsIcon,
+      active: activePanel === "projects",
+      onClick: () => setActivePanel("projects"),
+    },
+    {
+      id: "boards",
+      label: "Доски",
+      icon: BoardIcon,
+      active: pathname.startsWith("/boards"),
+      onClick: () => navigateTo("/boards"),
+    },
+    {
+      id: "analytics",
+      label: "Отчёты",
+      icon: ActivityIcon,
+      active: pathname.startsWith("/analytics"),
+      onClick: () => navigateTo("/analytics"),
+    },
+    {
+      id: "settings",
+      label: "Настройки",
+      icon: SettingsIcon,
+      active: activePanel === "settings",
+      onClick: () => setActivePanel("settings"),
+    },
+  ];
 
   return (
     <>
@@ -303,14 +341,14 @@ function WorkspaceSidebar({
       </aside>
 
       {activePanel ? (
-        <div className="fixed inset-y-0 left-[72px] right-0 z-40 hidden lg:block">
+        <div className="fixed inset-0 z-40 lg:left-[72px]">
           <button
             type="button"
             aria-label="Закрыть панель"
             className="absolute inset-0 cursor-default bg-[#111827]/38 backdrop-blur-[1px]"
             onClick={() => setActivePanel(null)}
           />
-          <aside className="relative h-screen w-[420px] overflow-hidden bg-white px-6 py-7 shadow-[26px_0_70px_rgba(15,23,42,0.22)]">
+          <aside className="relative h-full w-full max-w-[420px] overflow-y-auto bg-white px-6 py-7 shadow-[26px_0_70px_rgba(15,23,42,0.22)]">
             <div className="absolute right-4 top-4">
               <button
                 type="button"
@@ -326,7 +364,7 @@ function WorkspaceSidebar({
             <p className="text-xs uppercase tracking-[0.18em] text-text/36">Задачи</p>
             <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-text">Мои задачи</h2>
             <div className="mt-6 divide-y divide-black/[0.08] border-y border-black/[0.08]">
-              {data.tasks.filter((task) => task.assignee?.id === data.userId || task.creator.id === data.userId).slice(0, 8).map((task) => (
+              {personalTasks.slice(0, 8).map((task) => (
                 <Link key={task.id} href={`/tasks/${task.id}` as Route} className="block py-3 transition hover:bg-black/[0.025]" onClick={() => setActivePanel(null)}>
                   <p className="line-clamp-1 text-sm font-semibold text-text">{task.title}</p>
                   <div className="mt-1 flex items-center justify-between gap-2">
@@ -475,28 +513,56 @@ function WorkspaceSidebar({
         </div>
       ) : null}
 
-      <div className="border-b border-black/[0.08] bg-white px-4 py-3 lg:hidden">
+      <div className="border-b border-black/[0.08] bg-[#eef1f3]/96 px-4 py-3 backdrop-blur lg:hidden">
         <div className="flex items-center justify-between gap-3">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#f97316]">
-            <span className="h-4 w-4 rounded-full border-4 border-white" />
-          </span>
-          <div className="flex items-center gap-1">
-            {railItems.slice(0, 5).map((item) => {
-              const Icon = item.icon;
-
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  aria-label={item.label}
-                  onClick={item.onClick}
-                  className={clsx("grid h-9 w-9 place-items-center rounded-xl", item.active ? "bg-[#3f7cf4] text-white" : "text-text/54")}
-                >
-                  <Icon size={18} />
-                </button>
-              );
-            })}
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[#f97316] shadow-[0_10px_24px_rgba(249,115,22,0.22)]">
+              <span className="h-4 w-4 rounded-full border-4 border-white" />
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-text">{data.activeProject?.name ?? "Проект не выбран"}</p>
+              <p className="truncate text-xs text-text/46">{personalTasks.length} моих задач</p>
+            </div>
           </div>
+
+          <button
+            type="button"
+            aria-label="Создать задачу"
+            disabled={createTaskMutation.isPending}
+            onClick={() => {
+              if (!data.selectedProjectId) {
+                setActivePanel("projects");
+                return;
+              }
+
+              createTaskMutation.mutate();
+            }}
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[#111827] text-white shadow-[0_10px_24px_rgba(15,23,42,0.16)] disabled:opacity-60"
+          >
+            <PlusIcon size={18} />
+          </button>
+        </div>
+
+        <div className="mt-3 grid grid-cols-5 gap-2">
+          {mobileRailItems.map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <button
+                key={item.id}
+                type="button"
+                aria-label={item.label}
+                onClick={item.onClick}
+                className={clsx(
+                  "flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[11px] font-semibold transition",
+                  item.active ? "bg-white text-[#111827] shadow-[0_10px_24px_rgba(15,23,42,0.08)]" : "text-text/56 hover:bg-white/70 hover:text-text",
+                )}
+              >
+                <Icon size={18} />
+                <span className="truncate">{item.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </>
@@ -513,20 +579,20 @@ function WorkspaceHeader({
   data: WorkspaceData;
 }) {
   return (
-    <header className="border-b border-black/[0.08] pb-6">
+    <header className="rounded-[30px] border border-black/[0.08] bg-white/78 px-5 py-6 shadow-[0_18px_40px_rgba(15,23,42,0.05)] backdrop-blur-sm md:px-7">
       <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.18em] text-text/40">{data.activeProject?.key ?? "WORKSPACE"}</p>
+          <p className="text-xs uppercase tracking-[0.18em] text-text/36">{data.activeProject?.key ?? "WORKSPACE"}</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-[-0.055em] text-text md:text-6xl">{title}</h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-text/60">{description}</p>
         </div>
-        <div className="min-w-[240px]">
+        <div className="min-w-[240px] rounded-[24px] border border-black/[0.08] bg-[#eef1f3] p-4">
           <div className="flex items-center justify-between text-sm">
             <span className="text-text/48">{data.activeProject?.name ?? "Проект не выбран"}</span>
             <span className="font-semibold text-text">{getCompletion(data.tasks)}%</span>
           </div>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-black/[0.08]">
-            <div className="h-full rounded-full bg-[#111827]" style={{ width: `${getCompletion(data.tasks)}%` }} />
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/[0.08]">
+            <div className="h-full rounded-full bg-[#3f7cf4]" style={{ width: `${getCompletion(data.tasks)}%` }} />
           </div>
         </div>
       </div>
@@ -550,7 +616,7 @@ export function WorkspacePage({
 
   if (!hydrated) {
     return (
-      <main className="min-h-screen bg-[#f6f4ee] p-5">
+      <main className="min-h-screen bg-[#eef1f3] p-5">
         <SkeletonBoard />
       </main>
     );
@@ -562,17 +628,17 @@ export function WorkspacePage({
 
   if (!data) {
     return (
-      <main className="min-h-screen bg-[#f6f4ee] p-5">
+      <main className="min-h-screen bg-[#eef1f3] p-5">
         <SkeletonBoard />
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#f6f4ee] text-text">
+    <main className="min-h-screen bg-[#eef1f3] text-text">
       <div className="flex min-h-screen flex-col lg:flex-row">
         <WorkspaceSidebar data={data} />
-        <section className="min-w-0 flex-1 px-4 py-6 md:px-8 lg:px-10">
+        <section className="min-w-0 flex-1 px-4 py-5 md:px-8 lg:px-10">
           <div className="mx-auto max-w-[1480px] space-y-8">
             <WorkspaceHeader title={title} description={description} data={data} />
             {data.projects.length === 0 ? (

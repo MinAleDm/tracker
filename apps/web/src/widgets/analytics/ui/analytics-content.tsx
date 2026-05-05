@@ -15,10 +15,10 @@ export function AnalyticsContent({ data }: { data: WorkspaceData }) {
 
   return (
     <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_360px]">
-      <section>
+      <section className="rounded-[30px] border border-black/[0.08] bg-white/82 p-6 shadow-[0_18px_38px_rgba(15,23,42,0.05)]">
         <p className="text-xs uppercase tracking-[0.18em] text-text/40">Workflow health</p>
         <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-text">Распределение по статусам</h2>
-        <div className="mt-6 space-y-5 border-y border-black/[0.08] py-5">
+        <div className="mt-6 space-y-5">
           {statusOrder.map((status) => {
             const count = countByStatus(data.tasks, status);
 
@@ -37,14 +37,14 @@ export function AnalyticsContent({ data }: { data: WorkspaceData }) {
         </div>
       </section>
 
-      <aside className="space-y-8">
-        <div className="border-y border-black/[0.08] py-5">
-          <p className="text-xs uppercase tracking-[0.18em] text-text/40">Готовность</p>
-          <p className="mt-2 text-5xl font-semibold tracking-[-0.06em] text-text">{completion}%</p>
+      <aside className="space-y-5">
+        <div className="rounded-[30px] border border-black/[0.08] bg-[#111827] px-6 py-6 text-white shadow-[0_18px_38px_rgba(15,23,42,0.16)]">
+          <p className="text-xs uppercase tracking-[0.18em] text-white/46">Готовность</p>
+          <p className="mt-2 text-5xl font-semibold tracking-[-0.06em]">{completion}%</p>
         </div>
-        <section>
+        <section className="rounded-[30px] border border-black/[0.08] bg-white/82 p-6 shadow-[0_18px_38px_rgba(15,23,42,0.05)]">
           <p className="text-lg font-semibold text-text">Нагрузка команды</p>
-          <div className="mt-4 divide-y divide-black/[0.08] border-y border-black/[0.08]">
+          <div className="mt-4 divide-y divide-black/[0.08]">
             {assigneeGroups.length === 0 ? (
               <p className="py-4 text-sm leading-6 text-text/52">Добавьте участников в организацию, чтобы видеть распределение задач.</p>
             ) : (

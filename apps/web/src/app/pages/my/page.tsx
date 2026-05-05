@@ -45,7 +45,7 @@ export default function MyPage() {
     >
       {(data) => (
         <div className="space-y-10">
-          <section className="grid gap-8 border-y border-black/[0.08] py-8 xl:grid-cols-[minmax(0,1fr)_360px]">
+          <section className="grid gap-8 rounded-[30px] border border-black/[0.08] bg-white/82 p-6 shadow-[0_18px_38px_rgba(15,23,42,0.05)] xl:grid-cols-[minmax(0,1fr)_360px]">
             <div>
               <p className="text-xs uppercase tracking-[0.18em] text-text/40">Tracker Pro</p>
               <h2 className="mt-3 max-w-3xl text-4xl font-semibold tracking-[-0.055em] text-text md:text-6xl">
@@ -71,7 +71,7 @@ export default function MyPage() {
               </div>
             </div>
 
-            <aside className="border-y border-black/[0.08] py-5 xl:border-y-0 xl:border-l xl:pl-6">
+            <aside className="rounded-[26px] border border-black/[0.08] bg-[#eef1f3] p-5 xl:self-start">
               <p className="text-sm text-text/48">Текущий проект</p>
               <p className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-text">{data.activeProject?.name ?? "Не выбран"}</p>
               <div className="mt-5 grid grid-cols-2 gap-4 border-t border-black/[0.08] pt-5">
@@ -94,8 +94,10 @@ export default function MyPage() {
                 const Icon = section.icon;
 
                 return (
-                  <article key={section.title} className="border-t border-black/[0.08] pt-5">
-                    <Icon className="text-accent" size={22} />
+                  <article key={section.title} className="rounded-[26px] border border-black/[0.08] bg-white/78 p-5 shadow-[0_16px_32px_rgba(15,23,42,0.04)]">
+                    <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[#eef1f3] text-accent">
+                      <Icon size={22} />
+                    </div>
                     <h3 className="mt-4 text-lg font-semibold text-text">{section.title}</h3>
                     <p className="mt-2 text-sm leading-6 text-text/56">{section.description}</p>
                   </article>

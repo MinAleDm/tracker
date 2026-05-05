@@ -16,6 +16,20 @@ import { WorkspacePage, type WorkspaceData } from "@/widgets/workspace-shell/ui/
 
 type TaskTab = "comments" | "activity" | "related";
 
+const activityLabels: Record<string, string> = {
+  "task.created": "Задача создана",
+  "task.updated": "Поле обновлено",
+  "task.commented": "Добавлен комментарий",
+};
+
+const fieldLabels: Record<string, string> = {
+  title: "название",
+  description: "описание",
+  status: "статус",
+  priority: "приоритет",
+  assigneeId: "исполнитель",
+};
+
 function getInitials(value: string): string {
   return (
     value
@@ -52,6 +66,16 @@ function RelatedTaskLink({ task }: { task: TaskDto }) {
       <Badge tone={statusTone[task.status]}>{statusLabels[task.status]}</Badge>
     </Link>
   );
+}
+
+function formatActivityLabel(action: string, field: string | null) {
+  const base = activityLabels[action] ?? action;
+
+  if (!field) {
+    return base;
+  }
+
+  return `${base} · ${fieldLabels[field] ?? field}`;
 }
 
 function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceData }) {
@@ -113,7 +137,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
 
   if (taskQuery.error) {
     return (
-      <Card className="rounded-none border-x-0 border-black/[0.08] bg-transparent p-8 text-center shadow-none">
+      <Card className="p-8 text-center">
         <p className="text-xl font-semibold text-text">Не удалось открыть задачу</p>
         <p className="mt-2 text-sm text-text/52">Проверьте доступ к проекту или вернитесь к списку задач.</p>
         <Link
@@ -128,7 +152,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
 
   if (taskQuery.isLoading || !taskQuery.data) {
     return (
-      <Card className="rounded-none border-x-0 border-black/[0.08] bg-transparent p-8 text-center shadow-none">
+      <Card className="p-8 text-center">
         <p className="text-xl font-semibold text-text">Загружаю задачу...</p>
         <p className="mt-2 text-sm text-text/52">Подтягиваем комментарии, историю и текущие поля.</p>
       </Card>
@@ -161,7 +185,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
   return (
     <div className="grid gap-10 2xl:grid-cols-[minmax(0,1fr)_340px]">
       <section className="min-w-0 space-y-8">
-        <Card className="rounded-none border-x-0 border-black/[0.08] bg-transparent shadow-none">
+        <Card className="overflow-hidden">
           <header className="border-b border-black/[0.08] py-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="min-w-0">
@@ -194,7 +218,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
 
           <div className="grid gap-8 py-6 xl:grid-cols-[minmax(0,1fr)_320px]">
             <div className="space-y-8">
-              <Card className="rounded-none border-x-0 border-black/[0.08] bg-transparent py-5 shadow-none">
+              <Card className="border-none bg-transparent py-5 shadow-none">
                 <div className="grid gap-4 lg:grid-cols-2">
                   <label className="text-sm font-semibold text-text">
                     <span className="mb-2 block text-text/50">Название</span>
@@ -261,7 +285,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
                 </div>
               </Card>
 
-              <Card className="rounded-none border-x-0 border-black/[0.08] bg-transparent shadow-none">
+              <Card className="border-none bg-transparent shadow-none">
                 <div className="flex flex-wrap gap-2 border-b border-black/[0.08] py-3">
                   {tabs.map((item) => (
                     <button
@@ -303,7 +327,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
                     </div>
 
                     {task.comments.length === 0 ? (
-                      <div className="border-y border-black/[0.08] px-4 py-8 text-center text-sm text-text/50">
+                      <div className="rounded-2xl border border-dashed border-black/[0.08] px-4 py-8 text-center text-sm text-text/50">
                         Комментариев пока нет. Зафиксируйте первый контекст.
                       </div>
                     ) : (
@@ -328,7 +352,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
                 {tab === "activity" ? (
                   <div className="space-y-3 py-5">
                     {task.activity.length === 0 ? (
-                      <div className="border-y border-black/[0.08] px-4 py-8 text-center text-sm text-text/50">
+                      <div className="rounded-2xl border border-dashed border-black/[0.08] px-4 py-8 text-center text-sm text-text/50">
                         История появится после изменений задачи.
                       </div>
                     ) : (
@@ -337,10 +361,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
                           <div className="flex items-start justify-between gap-3">
                             <div>
                               <p className="font-semibold text-text">{item.actor.name}</p>
-                              <p className="mt-1 text-sm text-text/52">
-                                {item.action}
-                                {item.field ? ` · ${item.field}` : ""}
-                              </p>
+                              <p className="mt-1 text-sm text-text/52">{formatActivityLabel(item.action, item.field)}</p>
                             </div>
                             <span className="text-xs text-text/42">{formatDateTime(item.createdAt)}</span>
                           </div>
@@ -359,7 +380,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
                 {tab === "related" ? (
                   <div className="space-y-3 py-5">
                     {relatedTasks.length === 0 ? (
-                      <div className="border-y border-black/[0.08] px-4 py-8 text-center text-sm text-text/50">
+                      <div className="rounded-2xl border border-dashed border-black/[0.08] px-4 py-8 text-center text-sm text-text/50">
                         Связанные задачи появятся по статусу, автору или исполнителю.
                       </div>
                     ) : (
@@ -371,7 +392,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
             </div>
 
             <aside className="space-y-4">
-              <Card className="rounded-none border-x-0 border-black/[0.08] bg-transparent py-5 shadow-none">
+              <Card className="bg-[#eef1f3] py-5 shadow-none">
                 <p className="text-lg font-semibold text-text">Паспорт задачи</p>
                 <div className="mt-4 space-y-3">
                   <DetailRow label="Проект" value={activeProject?.name ?? "Текущий проект"} />
@@ -400,7 +421,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
       </section>
 
       <aside className="space-y-6">
-        <Card className="rounded-none border-x-0 border-black/[0.08] bg-transparent py-5 shadow-none">
+        <Card className="py-5 shadow-none">
           <div className="flex items-center gap-3">
             <UserIcon className="text-accent" />
             <p className="text-lg font-semibold text-text">Люди</p>
@@ -419,7 +440,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
           </div>
         </Card>
 
-        <Card className="rounded-none border-x-0 border-black/[0.08] bg-transparent py-5 shadow-none">
+        <Card className="py-5 shadow-none">
           <div className="flex items-center gap-3">
             <CommentIcon className="text-accent" />
             <p className="text-lg font-semibold text-text">Сводка</p>
@@ -431,7 +452,7 @@ function TaskDetailContent({ taskId, data }: { taskId: string; data: WorkspaceDa
           </div>
         </Card>
 
-        <Card className="rounded-none border-x-0 border-black/[0.08] bg-transparent py-5 shadow-none">
+        <Card className="py-5 shadow-none">
           <div className="flex items-center gap-3">
             <ActivityIcon className="text-accent" />
             <p className="text-lg font-semibold text-text">Описание</p>

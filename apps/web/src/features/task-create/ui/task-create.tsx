@@ -34,7 +34,7 @@ export function TaskCreate({
     mutationFn: () =>
       apiClient.createTask(projectId, {
         title: title.trim(),
-        description: description.trim(),
+        description: description.trim() || undefined,
         priority,
         assigneeId: assigneeId || undefined,
       }),
@@ -50,7 +50,7 @@ export function TaskCreate({
 
   return (
     <form
-      className="border-y border-black/[0.08] py-4"
+      className="rounded-[28px] border border-black/[0.08] bg-white/78 p-3 shadow-[0_16px_32px_rgba(15,23,42,0.05)] backdrop-blur-sm"
       onSubmit={(event) => {
         event.preventDefault();
         if (title.trim().length >= 3) {
@@ -64,19 +64,19 @@ export function TaskCreate({
           placeholder="Новая задача: что нужно сделать?"
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          className="rounded-xl border-black/[0.12] bg-transparent py-3 text-sm"
+          className="border-white/70 bg-[#f5f7fa] py-3 text-sm"
         />
         <Textarea
           rows={1}
           placeholder="Контекст, критерий готовности или ссылка"
           value={description}
           onChange={(event) => setDescription(event.target.value)}
-          className="min-h-[48px] rounded-xl border-black/[0.12] bg-transparent py-3 text-sm"
+          className="min-h-[50px] resize-y border-white/70 bg-[#f5f7fa] py-3 text-sm"
         />
         <Select
           value={priority}
           onChange={(event) => setPriority(event.target.value as TaskPriority)}
-          className="rounded-xl border-black/[0.12] bg-transparent py-3 text-sm"
+          className="border-white/70 bg-[#f5f7fa] py-3 text-sm"
         >
           {Object.entries(priorityLabels).map(([value, label]) => (
             <option key={value} value={value}>
@@ -87,7 +87,7 @@ export function TaskCreate({
         <Select
           value={assigneeId}
           onChange={(event) => setAssigneeId(event.target.value)}
-          className="rounded-xl border-black/[0.12] bg-transparent py-3 text-sm"
+          className="border-white/70 bg-[#f5f7fa] py-3 text-sm"
         >
           <option value="">Без исполнителя</option>
           {users.map((user) => (
@@ -99,7 +99,7 @@ export function TaskCreate({
         <Button
           type="submit"
           variant="primary"
-          className="rounded-xl bg-[#111827] px-4 py-3 text-sm hover:bg-[#020617]"
+          className="px-4 py-3 text-sm"
           disabled={mutation.isPending || title.trim().length < 3}
         >
           <PlusIcon className="mr-2" size={18} />
@@ -107,7 +107,7 @@ export function TaskCreate({
         </Button>
       </div>
       {mutation.error ? (
-        <p className="mt-3 text-sm font-medium text-rose-600">Не удалось создать задачу. Проверьте доступность API.</p>
+        <p className="mt-3 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">Не удалось создать задачу. Проверьте доступность API.</p>
       ) : null}
     </form>
   );

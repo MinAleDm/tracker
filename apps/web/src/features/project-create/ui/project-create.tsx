@@ -17,9 +17,9 @@ export function ProjectCreate({ organizationId }: { organizationId: string }) {
     mutationFn: () =>
       apiClient.createProject({
         organizationId,
-        key: keyValue.toUpperCase(),
-        name,
-        description,
+        key: keyValue.trim().toUpperCase(),
+        name: name.trim(),
+        description: description.trim() || undefined,
       }),
     onSuccess: async () => {
       setKeyValue("");
@@ -31,16 +31,16 @@ export function ProjectCreate({ organizationId }: { organizationId: string }) {
   });
 
   return (
-    <div className="rounded-[28px] border border-white/10 bg-white/[0.06] p-4 text-white">
+    <div className="rounded-[28px] border border-black/[0.08] bg-[#eef1f3] p-4 text-text">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-white/38">Новый проект</p>
-          <p className="mt-1 text-sm font-medium text-white/82">Добавить рабочую область</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-text/36">Новый проект</p>
+          <p className="mt-1 text-sm font-medium text-text/82">Добавить рабочую область</p>
         </div>
         <Button
           type="button"
           variant="ghost"
-          className="rounded-[18px] text-white hover:bg-white/10"
+          className="rounded-[18px]"
           onClick={() => setExpanded((value) => !value)}
         >
           {expanded ? "Скрыть" : "Открыть"}
@@ -53,37 +53,39 @@ export function ProjectCreate({ organizationId }: { organizationId: string }) {
             placeholder="Ключ"
             value={keyValue}
             onChange={(event) => setKeyValue(event.target.value)}
-            className="border-white/10 bg-white/10 text-white placeholder:text-white/35"
+            className="bg-white"
           />
           <Input
             placeholder="Название проекта"
             value={name}
             onChange={(event) => setName(event.target.value)}
-            className="border-white/10 bg-white/10 text-white placeholder:text-white/35"
+            className="bg-white"
           />
           <Textarea
             rows={3}
             placeholder="Короткое описание"
             value={description}
             onChange={(event) => setDescription(event.target.value)}
-            className="border-white/10 bg-white/10 text-white placeholder:text-white/35"
+            className="bg-white"
           />
           <Button
             type="button"
             variant="primary"
-            className="rounded-2xl bg-white text-[#111827] hover:bg-white/90"
+            className="rounded-2xl"
             disabled={mutation.isPending || !keyValue.trim() || !name.trim()}
-            onClick={() => mutation.mutate()}
+            onClick={() => {
+              mutation.mutate();
+            }}
           >
             {mutation.isPending ? "Создаю..." : "Создать проект"}
           </Button>
         </div>
       ) : (
-        <p className="mt-3 text-sm text-white/42">Форма скрыта, чтобы не перегружать боковую панель.</p>
+        <p className="mt-3 text-sm text-text/44">Форма скрыта, чтобы не перегружать боковую панель.</p>
       )}
 
       {mutation.error ? (
-        <p className="mt-3 text-sm text-rose-200">Не удалось создать проект. Проверь уникальность ключа.</p>
+        <p className="mt-3 rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700">Не удалось создать проект. Проверь уникальность ключа.</p>
       ) : null}
     </div>
   );

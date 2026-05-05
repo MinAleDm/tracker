@@ -8,11 +8,11 @@ interface BadgeProps extends PropsWithChildren {
 export function Badge({ children, tone = "neutral" }: BadgeProps) {
   return (
     <span
-      className={clsx("inline-flex rounded-full px-2.5 py-1 text-xs font-semibold", {
-        "bg-muted text-text": tone === "neutral",
-        "bg-emerald-100 text-emerald-700": tone === "success",
-        "bg-amber-100 text-amber-700": tone === "warning",
-        "bg-rose-100 text-rose-700": tone === "danger",
+      className={clsx("inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold tracking-[0.02em]", {
+        "bg-[#eef2f6] text-[#334155]": tone === "neutral",
+        "bg-[#dcfce7] text-[#166534]": tone === "success",
+        "bg-[#fff1d6] text-[#b45309]": tone === "warning",
+        "bg-[#ffe0e5] text-[#be123c]": tone === "danger",
       })}
     >
       {children}

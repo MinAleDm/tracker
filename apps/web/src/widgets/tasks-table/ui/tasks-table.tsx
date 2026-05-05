@@ -16,8 +16,8 @@ export function TasksTable({ tasks }: { tasks: TaskDto[] }) {
   }
 
   return (
-    <section className="border-y border-black/[0.08]">
-      <div className="hidden grid-cols-[110px_minmax(0,1.5fr)_150px_150px_170px_120px] gap-4 border-b border-black/[0.08] py-3 text-xs font-bold uppercase tracking-[0.16em] text-text/38 xl:grid">
+    <section className="overflow-hidden rounded-[30px] border border-black/[0.08] bg-white/82 shadow-[0_18px_38px_rgba(15,23,42,0.05)] backdrop-blur-sm">
+      <div className="hidden grid-cols-[110px_minmax(0,1.5fr)_150px_150px_170px_120px] gap-4 border-b border-black/[0.08] bg-[#eef1f3] px-5 py-4 text-xs font-bold uppercase tracking-[0.16em] text-text/38 xl:grid">
         <span>ID</span>
         <span>Название</span>
         <span>Статус</span>
@@ -30,17 +30,19 @@ export function TasksTable({ tasks }: { tasks: TaskDto[] }) {
           <Link
             key={task.id}
             href={`/tasks/${task.id}` as Route}
-            className="grid gap-3 py-4 transition hover:bg-black/[0.025] xl:grid-cols-[110px_minmax(0,1.5fr)_150px_150px_170px_120px] xl:items-center"
+            className="grid gap-3 px-5 py-4 transition hover:bg-black/[0.025] xl:grid-cols-[110px_minmax(0,1.5fr)_150px_150px_170px_120px] xl:items-center"
           >
             <span className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-text/40">{taskKey(task)}</span>
             <span className="min-w-0">
               <span className="block truncate font-semibold text-text">{task.title}</span>
               <span className="mt-1 block truncate text-sm text-text/48">{task.description || "Описание не заполнено"}</span>
             </span>
-            <span>
+            <span className="flex items-center gap-2 xl:block">
+              <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-text/34 xl:hidden">Статус</span>
               <Badge tone={statusTone[task.status]}>{statusLabels[task.status]}</Badge>
             </span>
-            <span>
+            <span className="flex items-center gap-2 xl:block">
+              <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-text/34 xl:hidden">Приоритет</span>
               <Badge tone={priorityTone[task.priority]}>{priorityLabels[task.priority]}</Badge>
             </span>
             <span className="flex items-center gap-2 text-sm text-text/58">

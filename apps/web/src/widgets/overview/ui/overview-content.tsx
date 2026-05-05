@@ -12,9 +12,9 @@ import { EmptyState } from "@/widgets/workspace-shell/ui/empty-state";
 
 function Metric({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="border-l border-black/[0.08] pl-4">
-      <p className="text-xs uppercase tracking-[0.18em] text-text/40">{label}</p>
-      <p className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-text">{value}</p>
+    <div className="rounded-[24px] border border-black/[0.08] bg-white/86 p-5 shadow-[0_14px_30px_rgba(15,23,42,0.04)]">
+      <p className="text-xs uppercase tracking-[0.18em] text-text/38">{label}</p>
+      <p className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-text">{value}</p>
     </div>
   );
 }
@@ -25,7 +25,7 @@ export function OverviewContent({ data, onCreateTask }: { data: WorkspaceData; o
 
   return (
     <div className="space-y-10">
-      <section className="grid gap-5 border-y border-black/[0.08] py-6 md:grid-cols-4">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Metric label="Всего" value={data.tasks.length} />
         <Metric label="В работе" value={countByStatus(data.tasks, "IN_PROGRESS")} />
         <Metric label="Ревью" value={countByStatus(data.tasks, "REVIEW")} />
@@ -45,7 +45,7 @@ export function OverviewContent({ data, onCreateTask }: { data: WorkspaceData; o
             </Button>
           </div>
 
-          <div className="mt-5 divide-y divide-black/[0.08] border-y border-black/[0.08]">
+          <div className="mt-5 overflow-hidden rounded-[30px] border border-black/[0.08] bg-white/82 shadow-[0_18px_38px_rgba(15,23,42,0.05)]">
             {urgentTasks.length === 0 ? (
               <EmptyState title="Критичных задач нет" description="Ревью и срочные задачи будут появляться в этом блоке автоматически." />
             ) : (
@@ -53,7 +53,7 @@ export function OverviewContent({ data, onCreateTask }: { data: WorkspaceData; o
                 <Link
                   key={task.id}
                   href={`/tasks/${task.id}` as Route}
-                  className="grid gap-3 py-4 transition hover:bg-black/[0.025] md:grid-cols-[110px_minmax(0,1fr)_150px]"
+                  className="grid gap-3 border-b border-black/[0.08] px-5 py-4 transition last:border-b-0 hover:bg-black/[0.025] md:grid-cols-[110px_minmax(0,1fr)_170px]"
                 >
                   <span className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-text/40">{taskKey(task)}</span>
                   <span className="min-w-0">
@@ -72,12 +72,12 @@ export function OverviewContent({ data, onCreateTask }: { data: WorkspaceData; o
 
         <aside>
           <p className="text-xs uppercase tracking-[0.18em] text-text/40">Последние обновления</p>
-          <div className="mt-5 divide-y divide-black/[0.08] border-y border-black/[0.08]">
+          <div className="mt-5 overflow-hidden rounded-[30px] border border-black/[0.08] bg-white/82 shadow-[0_18px_38px_rgba(15,23,42,0.05)]">
             {freshTasks.length === 0 ? (
-              <p className="py-5 text-sm leading-6 text-text/58">Пока нет задач для отображения.</p>
+              <p className="px-5 py-5 text-sm leading-6 text-text/58">Пока нет задач для отображения.</p>
             ) : (
               freshTasks.map((task) => (
-                <Link key={task.id} href={`/tasks/${task.id}` as Route} className="block py-4 transition hover:bg-black/[0.025]">
+                <Link key={task.id} href={`/tasks/${task.id}` as Route} className="block border-b border-black/[0.08] px-5 py-4 transition last:border-b-0 hover:bg-black/[0.025]">
                   <p className="line-clamp-1 text-sm font-semibold text-text">{task.title}</p>
                   <p className="mt-1 text-xs text-text/44">Обновлено {formatRelativeDate(task.updatedAt)}</p>
                 </Link>

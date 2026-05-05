@@ -116,8 +116,8 @@ function BoardColumn({
     <section
       ref={setNodeRef}
       className={clsx(
-        "min-h-[520px] border-t border-black/[0.08] py-4 transition",
-        isOver ? "bg-white/60 ring-2 ring-accent/20" : "bg-transparent",
+        "min-h-[320px] rounded-[28px] border border-black/[0.08] bg-white/82 p-4 shadow-[0_18px_38px_rgba(15,23,42,0.05)] transition xl:min-h-[520px]",
+        isOver ? "bg-[#eef4ff] ring-2 ring-[#3f7cf4]/20" : "bg-white/82",
       )}
     >
       <header className="mb-4 flex items-start justify-between gap-3">
@@ -135,7 +135,7 @@ function BoardColumn({
 
       <div className="space-y-3">
         {tasks.length === 0 ? (
-          <div className="border-y border-dashed border-black/[0.08] px-4 py-10 text-center text-sm leading-6 text-text/44">
+          <div className="rounded-2xl border border-dashed border-black/[0.08] px-4 py-10 text-center text-sm leading-6 text-text/44">
             Перетащите задачу сюда, чтобы сменить статус.
           </div>
         ) : (
@@ -185,7 +185,7 @@ export function KanbanBoard({ tasks, onOpenTask }: { tasks: TaskDto[]; onOpenTas
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-4">
         {statusOrder.map((status) => (
           <BoardColumn
             key={status}
