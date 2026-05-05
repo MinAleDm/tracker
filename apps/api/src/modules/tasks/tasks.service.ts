@@ -18,14 +18,15 @@ export class TasksService {
   ) {}
 
   async list(userId: string, filters: TaskFiltersDto): Promise<TaskListResponseDto> {
-    const cacheKey = `tasks:${filters.projectId}:${JSON.stringify(filters)}`;
+    const normalizedFilters = this.normalizeFilters(filters);
+    const cacheKey = `tasks:${userId}:${normalizedFilters.projectId}:${JSON.stringify(normalizedFilters)}`;
     const cached = await this.redisService.get<TaskListResponseDto>(cacheKey);
 
     if (cached) {
       return cached;
     }
 
-    const result = await this.tasksRepository.list(userId, filters);
+    const result = await this.tasksRepository.list(userId, normalizedFilters);
     const payload: TaskListResponseDto = {
       data: result.data.map(mapTask),
       meta: {
@@ -159,5 +160,17 @@ export class TasksService {
     if (!project) {
       throw new BadRequestException("Assignee must belong to the project organization");
     }
+  }
+
+  private normalizeFilters(filters: TaskFiltersDto): TaskFiltersDto {
+    return {
+      projectId: filters.projectId,
+      search: filters.search?.trim() || undefined,
+      status: filters.status || undefined,
+      priority: filters.priority || undefined,
+      assigneeId: filters.assigneeId?.trim() || undefined,
+      page: filters.page ?? 1,
+      pageSize: filters.pageSize ?? 20,
+    };
   }
 }

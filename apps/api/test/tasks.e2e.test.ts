@@ -152,4 +152,39 @@ describe("task flow", () => {
     assert.equal(detailsResponse.status, 200);
     assert.equal(detailsResponse.body.assignee.id, testIds.engineerId);
   });
+
+  it("treats blank task filters as absent filters", async () => {
+    const context = await createTestApp();
+    appsToClose.add(context);
+
+    const request = supertest(context.app.getHttpServer());
+
+    const loginResponse = await request.post("/api/auth/login").send({
+      email: "owner@tracker.local",
+      password: "changeme123",
+    });
+
+    const accessToken = loginResponse.body.tokens.accessToken as string;
+
+    const createResponse = await request
+      .post(`/api/projects/${testIds.projectId}/tasks`)
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({
+        title: "Normalize blank filters",
+      });
+
+    assert.equal(createResponse.status, 201);
+
+    const listResponse = await request
+      .get(`/api/projects/${testIds.projectId}/tasks`)
+      .query({
+        search: "   ",
+        assigneeId: "   ",
+      })
+      .set("Authorization", `Bearer ${accessToken}`);
+
+    assert.equal(listResponse.status, 200);
+    assert.equal(listResponse.body.data.length, 1);
+    assert.equal(listResponse.body.data[0].title, "Normalize blank filters");
+  });
 });
