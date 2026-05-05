@@ -7,15 +7,19 @@ on:
       - reopened
       - synchronize
       - ready_for_review
+    paths-ignore:
+      - "**/*.md"
+      - "LICENSE"
 
 permissions:
   contents: read
 
 concurrency:
-  group: pr-check-${{ github.event.pull_request.number || github.ref }}
+  group: pr-check-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   pr-validate:
     name: PR Validate
+    if: ${{ !github.event.pull_request.draft }}
     uses: ./.github/workflows/_validate.yml
