@@ -263,6 +263,7 @@ pnpm --filter @tracker/db prisma:seed
 - [`apps/web/src/lib/api-client.ts`](./apps/web/src/lib/api-client.ts) — auth-aware HTTP-клиент
 - [`apps/web/src/lib/use-task-realtime.ts`](./apps/web/src/lib/use-task-realtime.ts) — realtime-подписка
 - [`k8s/base/kustomization.yaml`](./k8s/base/kustomization.yaml) — Kubernetes base-манифесты
+- [`CHANGELOG.md`](./CHANGELOG.md) — журнал изменений
 
 ## Проверки
 
