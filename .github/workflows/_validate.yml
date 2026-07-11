@@ -59,3 +59,6 @@ jobs:
 
       - name: Validate Docker Compose configuration
         run: docker compose config --quiet
+
+      - name: Render Kubernetes manifests
+        run: kubectl kustomize k8s/base >/tmp/tracker-k8s.yaml
