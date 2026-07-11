@@ -1,0 +1,116 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  labels:
+    app.kubernetes.io/name: tracker
+    app.kubernetes.io/component: api
+spec:
+  selector:
+    app.kubernetes.io/name: tracker
+    app.kubernetes.io/component: api
+  ports:
+    - name: http
+      port: 3001
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  labels:
+    app.kubernetes.io/name: tracker
+    app.kubernetes.io/component: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tracker
+      app.kubernetes.io/component: api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tracker
+        app.kubernetes.io/component: api
+    spec:
+      containers:
+        - name: api
+          image: tracker-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3001
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: tracker-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: tracker-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: tracker-secret
+                  key: POSTGRES_PASSWORD
+            - name: DATABASE_URL
+              value: postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgres:5432/$(POSTGRES_DB)?schema=public
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: tracker-config
+                  key: PORT
+            - name: REDIS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: tracker-config
+                  key: REDIS_URL
+            - name: JWT_ACCESS_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: tracker-secret
+                  key: JWT_ACCESS_SECRET
+            - name: JWT_REFRESH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: tracker-secret
+                  key: JWT_REFRESH_SECRET
+            - name: JWT_ACCESS_TTL
+              valueFrom:
+                configMapKeyRef:
+                  name: tracker-config
+                  key: JWT_ACCESS_TTL
+            - name: JWT_REFRESH_TTL
+              valueFrom:
+                configMapKeyRef:
+                  name: tracker-config
+                  key: JWT_REFRESH_TTL
+            - name: CORS_ORIGIN
+              valueFrom:
+                configMapKeyRef:
+                  name: tracker-config
+                  key: CORS_ORIGIN
+            - name: DEMO_USER_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  name: tracker-config
+                  key: DEMO_USER_EMAIL
+            - name: DEMO_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: tracker-secret
+                  key: DEMO_USER_PASSWORD
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+

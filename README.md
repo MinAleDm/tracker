@@ -165,6 +165,26 @@ docker compose up --build -d
 docker compose down -v
 ```
 
+## Kubernetes
+
+Базовые манифесты находятся в [`k8s/base`](./k8s/base), инструкция по локальному запуску — в [`k8s/README.md`](./k8s/README.md).
+
+Короткий путь для локального кластера:
+
+```bash
+docker build -f apps/api/Dockerfile -t tracker-api:latest .
+docker build -f apps/web/Dockerfile -t tracker-web:latest .
+kubectl apply -k k8s/base
+kubectl -n tracker port-forward svc/nginx 8080:80
+```
+
+Для `kind` перед `kubectl apply` загрузите образы в кластер:
+
+```bash
+kind load docker-image tracker-api:latest
+kind load docker-image tracker-web:latest
+```
+
 ## Переменные окружения
 
 ### Корень репозитория
@@ -242,6 +262,7 @@ pnpm --filter @tracker/db prisma:seed
 - [`apps/web/src/widgets/workspace-shell/ui/workspace-shell.tsx`](./apps/web/src/widgets/workspace-shell/ui/workspace-shell.tsx) — shell рабочего пространства
 - [`apps/web/src/lib/api-client.ts`](./apps/web/src/lib/api-client.ts) — auth-aware HTTP-клиент
 - [`apps/web/src/lib/use-task-realtime.ts`](./apps/web/src/lib/use-task-realtime.ts) — realtime-подписка
+- [`k8s/base/kustomization.yaml`](./k8s/base/kustomization.yaml) — Kubernetes base-манифесты
 
 ## Проверки
 

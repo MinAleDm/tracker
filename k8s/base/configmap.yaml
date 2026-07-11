@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tracker-config
+data:
+  POSTGRES_DB: tracker
+  POSTGRES_USER: tracker
+  PORT: "3001"
+  REDIS_URL: redis://redis:6379
+  JWT_ACCESS_TTL: 15m
+  JWT_REFRESH_TTL: 7d
+  CORS_ORIGIN: http://localhost:8080,http://127.0.0.1:8080
+  DEMO_USER_EMAIL: owner@tracker.local
+  NEXT_PUBLIC_API_URL: http://localhost:8080/api
+  NEXT_PUBLIC_SOCKET_URL: http://localhost:8080
+
