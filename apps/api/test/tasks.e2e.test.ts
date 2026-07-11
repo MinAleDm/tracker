@@ -73,6 +73,16 @@ describe("task flow", () => {
     assert.equal(updateResponse.body.status, "IN_PROGRESS");
     assert.equal(updateResponse.body.priority, "URGENT");
 
+    const clearDescriptionResponse = await request
+      .patch(`/api/tasks/${taskId}`)
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({
+        description: "",
+      });
+
+    assert.equal(clearDescriptionResponse.status, 200);
+    assert.equal(clearDescriptionResponse.body.description, "");
+
     const commentResponse = await request
       .post(`/api/tasks/${taskId}/comments`)
       .set("Authorization", `Bearer ${accessToken}`)
@@ -95,6 +105,15 @@ describe("task flow", () => {
       refreshedDetails.body.activity.some(
         (entry: { action: string; field: string | null }) =>
           entry.action === "task.updated" && entry.field === "status",
+      ),
+    );
+    assert.ok(
+      refreshedDetails.body.activity.some(
+        (entry: { action: string; field: string | null; beforeValue: string | null; afterValue: string | null }) =>
+          entry.action === "task.updated" &&
+          entry.field === "description" &&
+          entry.beforeValue === "Updated from the integration test." &&
+          entry.afterValue === "",
       ),
     );
   });

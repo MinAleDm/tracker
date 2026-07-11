@@ -1,5 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import type { CreateTaskDto, TaskActivityDto, TaskDetailsDto, TaskFiltersDto, TaskListResponseDto, UpdateTaskDto } from "@tracker/types";
+import type { OrganizationPermission } from "../../common/auth/organization-permissions";
 import { OrganizationsService } from "../organizations/organizations.service";
 import { RedisService } from "../../common/redis/redis.service";
 import { ActivityRepository } from "./activity.repository";
@@ -82,23 +83,7 @@ export class TasksService {
   }
 
   async update(taskId: string, userId: string, dto: UpdateTaskDto): Promise<TaskDetailsDto> {
-    const existing = await this.tasksRepository.findById(taskId, userId);
-
-    if (!existing) {
-      throw new NotFoundException("Task not found");
-    }
-
-    const project = await this.tasksRepository.findProjectScope(existing.projectId);
-
-    if (!project) {
-      throw new NotFoundException("Task not found");
-    }
-
-    await this.organizationsService.requirePermission(
-      userId,
-      project.organizationId,
-      "task:update",
-    );
+    const existing = await this.findTaskForAction(taskId, userId, "task:update");
 
     if (dto.assigneeId !== undefined) {
       await this.ensureAssigneeCanAccessProject(existing.projectId, dto.assigneeId);
@@ -119,23 +104,7 @@ export class TasksService {
   }
 
   async addComment(taskId: string, userId: string, body: string) {
-    const existing = await this.tasksRepository.findById(taskId, userId);
-
-    if (!existing) {
-      throw new NotFoundException("Task not found");
-    }
-
-    const project = await this.tasksRepository.findProjectScope(existing.projectId);
-
-    if (!project) {
-      throw new NotFoundException("Task not found");
-    }
-
-    await this.organizationsService.requirePermission(
-      userId,
-      project.organizationId,
-      "task:comment",
-    );
+    const existing = await this.findTaskForAction(taskId, userId, "task:comment");
 
     const comment = await this.commentsRepository.create(taskId, userId, body);
 
@@ -151,13 +120,24 @@ export class TasksService {
   }
 
   async listActivity(taskId: string, userId: string): Promise<TaskActivityDto[]> {
-    const existing = await this.tasksRepository.findById(taskId, userId);
+    const existing = await this.findTaskForAction(taskId, userId, "task:activity:read");
 
-    if (!existing) {
+    const activity = await this.activityRepository.list(taskId);
+    return activity.map(mapActivity);
+  }
+
+  private async findTaskForAction(
+    taskId: string,
+    userId: string,
+    permission: OrganizationPermission,
+  ) {
+    const task = await this.tasksRepository.findById(taskId, userId);
+
+    if (!task) {
       throw new NotFoundException("Task not found");
     }
 
-    const project = await this.tasksRepository.findProjectScope(existing.projectId);
+    const project = await this.tasksRepository.findProjectScope(task.projectId);
 
     if (!project) {
       throw new NotFoundException("Task not found");
@@ -166,11 +146,10 @@ export class TasksService {
     await this.organizationsService.requirePermission(
       userId,
       project.organizationId,
-      "task:activity:read",
+      permission,
     );
 
-    const activity = await this.activityRepository.list(taskId);
-    return activity.map(mapActivity);
+    return task;
   }
 
   private collectChanges(
@@ -189,9 +168,13 @@ export class TasksService {
       .filter((field) => dto[field] !== undefined && dto[field] !== existing[field])
       .map((field) => ({
         field,
-        beforeValue: existing[field] ? String(existing[field]) : null,
-        afterValue: dto[field] ? String(dto[field]) : null,
+        beforeValue: this.toActivityValue(existing[field]),
+        afterValue: this.toActivityValue(dto[field]),
       }));
+  }
+
+  private toActivityValue(value: string | null | undefined) {
+    return value === null || value === undefined ? null : String(value);
   }
 
   private async ensureAssigneeCanAccessProject(projectId: string, assigneeId?: string | null) {
