@@ -369,6 +369,22 @@ function createOrganizationsRepository(
   store: InMemoryTrackerStore,
 ): OrganizationsRepository {
   return {
+    listForUser(userId: string) {
+      const memberships = store.memberships
+        .filter((item) => item.userId === userId)
+        .sort((left, right) => {
+          const leftOrganization = store.findOrganization(left.organizationId);
+          const rightOrganization = store.findOrganization(right.organizationId);
+
+          return (leftOrganization?.name ?? "").localeCompare(rightOrganization?.name ?? "");
+        })
+        .map((membership) => ({
+          ...membership,
+          organization: store.findOrganization(membership.organizationId)!,
+        }));
+
+      return Promise.resolve(memberships);
+    },
     findMembership(userId: string, organizationId: string) {
       return Promise.resolve(
         store.memberships.find(
@@ -378,7 +394,7 @@ function createOrganizationsRepository(
         ) ?? null,
       );
     },
-  } as OrganizationsRepository
+  } as OrganizationsRepository;
 }
 
 function createAuthRepository(store: InMemoryTrackerStore): AuthRepository {
@@ -572,6 +588,18 @@ function createProjectsRepository(
   store: InMemoryTrackerStore,
 ): ProjectsRepository {
   return {
+    async listForUser(userId: string, organizationId: string) {
+      return store.projects
+        .filter((project) => project.organizationId === organizationId)
+        .filter((project) => store.hasProjectAccess(userId, project.id))
+        .sort((left, right) => right.updatedAt.getTime() - left.updatedAt.getTime())
+        .map((project) => ({
+          ...project,
+          _count: {
+            tasks: store.tasks.filter((task) => task.projectId === project.id).length,
+          },
+        }));
+    },
     async create(input) {
       const now = new Date();
 
@@ -591,6 +619,13 @@ function createProjectsRepository(
         ...project,
         _count: { tasks: 0 },
       };
+    },
+    async canAccessOrganization(userId: string, organizationId: string) {
+      return store.memberships.some(
+        (membership) =>
+          membership.userId === userId &&
+          membership.organizationId === organizationId,
+      );
     },
   } as ProjectsRepository;
 }
@@ -770,6 +805,9 @@ function createRedisService(): RedisService {
         }
       }
     },
+    async ping() {
+      return true;
+    },
     async onModuleDestroy() {
       cache.clear();
     },
@@ -796,7 +834,9 @@ export async function createTestApp(): Promise<TestAppContext> {
     imports: [AppModule],
   })
     .overrideProvider(PrismaService)
-    .useValue({})
+    .useValue({
+      $queryRaw: async () => [{ "?column?": 1 }],
+    })
     .overrideProvider(RedisService)
     .useValue(createRedisService())
     .overrideProvider(UsersRepository)
@@ -819,6 +859,10 @@ export async function createTestApp(): Promise<TestAppContext> {
 
   const app = moduleRef.createNestApplication();
 
+  app.enableCors({
+    origin: true,
+    credentials: true,
+  });
   app.setGlobalPrefix("api");
   app.useGlobalPipes(
     new ValidationPipe({

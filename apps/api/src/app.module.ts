@@ -10,6 +10,7 @@ import { PrismaModule } from "./common/prisma/prisma.module";
 import { RedisModule } from "./common/redis/redis.module";
 import { RealtimeModule } from "./modules/realtime/realtime.module";
 import { InvitationsModule } from "./modules/invitations/invitations.module";
+import { HealthModule } from "./modules/health/health.module";
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { InvitationsModule } from "./modules/invitations/invitations.module";
     ProjectsModule,
     TasksModule,
     RealtimeModule,
+    HealthModule,
   ],
 })
 export class AppModule implements NestModule {

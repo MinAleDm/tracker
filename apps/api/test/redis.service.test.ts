@@ -11,6 +11,9 @@ function createFailingClient() {
     set: async () => {
       throw new Error("redis unavailable");
     },
+    ping: async () => {
+      throw new Error("redis unavailable");
+    },
     scan: async () => {
       throw new Error("redis unavailable");
     },
@@ -30,6 +33,7 @@ describe("redis service", () => {
       const value = await service.get("tasks:1");
       assert.equal(value, null);
     });
+    assert.equal(await service.ping(), false);
   });
 
   it("invalidates keys by prefix through scan batches", async () => {
@@ -40,6 +44,7 @@ describe("redis service", () => {
       connect: async () => undefined,
       get: async () => null,
       set: async () => undefined,
+      ping: async () => "PONG",
       scan: async (cursor: string) => {
         scanCalls.push(cursor);
 
@@ -60,5 +65,6 @@ describe("redis service", () => {
 
     assert.deepEqual(scanCalls, ["0", "1"]);
     assert.deepEqual(deleted, [["tasks:1", "tasks:2"], ["tasks:3"]]);
+    assert.equal(await service.ping(), true);
   });
 });

@@ -5,6 +5,7 @@ interface RedisClientLike {
   connect(): Promise<unknown>;
   get(key: string): Promise<string | null>;
   set(key: string, value: string, mode: "EX", ttlSeconds: number): Promise<unknown>;
+  ping(): Promise<string>;
   scan(cursor: string | number, ...args: unknown[]): Promise<[string, string[]]>;
   del(...keys: string[]): Promise<number>;
   quit(): Promise<unknown>;
@@ -58,6 +59,14 @@ export class RedisService implements OnModuleDestroy {
       } while (cursor !== "0");
     } catch {
       // Инвалидация кеша best-effort: бизнес-операция уже завершилась успешно.
+    }
+  }
+
+  async ping(): Promise<boolean> {
+    try {
+      return (await this.client.ping()) === "PONG";
+    } catch {
+      return false;
     }
   }
 
