@@ -50,6 +50,24 @@ packages/
 
 Рабочее пространство построено вокруг `WorkspacePage`: он решает авторизацию, гидрацию client state, загрузку организации, проекта, пользователей и задач, а также realtime-подписку.
 
+## Скриншоты
+
+| Вход | Рабочее пространство |
+| --- | --- |
+| ![Экран входа](./docs/screenshots/01-sign-in.png) | ![Рабочее пространство](./docs/screenshots/02-workspace.png) |
+
+| Обзор | Задачи |
+| --- | --- |
+| ![Обзор проекта](./docs/screenshots/03-overview.png) | ![Список задач](./docs/screenshots/04-tasks.png) |
+
+| Доска | Аналитика |
+| --- | --- |
+| ![Канбан-доска](./docs/screenshots/05-boards.png) | ![Аналитика проекта](./docs/screenshots/06-analytics.png) |
+
+| Карточка задачи |
+| --- |
+| ![Карточка задачи](./docs/screenshots/07-task-detail.png) |
+
 ### Backend
 
 API поднимается с префиксом `/api`, Swagger доступен по `/api/docs`.
