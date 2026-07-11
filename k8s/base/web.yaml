@@ -53,14 +53,13 @@ spec:
                   key: NEXT_PUBLIC_SOCKET_URL
           readinessProbe:
             httpGet:
-              path: /
+              path: /api/health
               port: http
             initialDelaySeconds: 10
             periodSeconds: 5
           livenessProbe:
             httpGet:
-              path: /
+              path: /api/health
               port: http
             initialDelaySeconds: 30
             periodSeconds: 20
-
