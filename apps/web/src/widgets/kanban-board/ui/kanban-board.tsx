@@ -106,8 +106,8 @@ function BoardColumn({
     <section
       ref={setNodeRef}
       className={clsx(
-        "min-h-[320px] rounded-xl border border-black/[0.08] bg-[#f8fafc] p-3 transition xl:min-h-[520px]",
-        isOver ? "bg-[#eef4ff] ring-2 ring-[#3f76ff]/20" : "bg-[#f8fafc]",
+        "min-h-[420px] rounded-xl border border-border bg-muted/55 p-3 transition xl:min-h-[560px]",
+        isOver ? "bg-accent/10 ring-2 ring-accent/20" : "bg-muted/55",
       )}
     >
       <header className="mb-3 flex items-start justify-between gap-3 border-b border-black/[0.08] pb-3">
@@ -168,7 +168,7 @@ export function KanbanBoard({ tasks, onOpenTask }: { tasks: TaskDto[]; onOpenTas
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-1 gap-3 xl:grid-cols-4">
+      <div className="grid auto-cols-[minmax(280px,1fr)] grid-flow-col gap-3 overflow-x-auto pb-2 xl:grid-flow-row xl:grid-cols-4">
         {statusOrder.map((status) => (
           <BoardColumn
             key={status}
