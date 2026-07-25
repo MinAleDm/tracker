@@ -15,7 +15,6 @@ import { CSS } from "@dnd-kit/utilities";
 import type { TaskDto, TaskStatus } from "@tracker/types";
 import { Badge } from "@tracker/ui";
 import clsx from "clsx";
-import { motion } from "framer-motion";
 import { useTaskUpdate } from "@/features/task-update/model/use-task-update";
 import { priorityLabels, priorityTone, statusLabels, statusOrder, statusTone } from "@/lib/task-meta";
 import { formatRelativeDate } from "@/shared/lib/utils/date";
@@ -30,15 +29,12 @@ const TaskCard = memo(function TaskCard({ task, onOpen }: { task: TaskDto; onOpe
   });
 
   return (
-    <motion.article
-      layout
+    <article
       ref={setNodeRef}
       style={{ transform: CSS.Translate.toString(transform) }}
-      animate={{ opacity: isDragging ? 0.58 : 1, scale: isDragging ? 1.015 : 1 }}
-      transition={{ duration: 0.16 }}
       className={clsx(
-        "group rounded-lg border border-black/[0.08] bg-white p-3 text-left shadow-sm transition",
-        isDragging ? "z-20 cursor-grabbing bg-white/70 ring-2 ring-accent/30" : "hover:border-black/[0.14] hover:bg-white",
+        "group rounded-lg border border-black/[0.08] bg-white p-3 text-left shadow-sm transition duration-150",
+        isDragging ? "z-20 scale-[1.015] cursor-grabbing bg-white/70 opacity-60 ring-2 ring-accent/30" : "hover:border-black/[0.14] hover:bg-white",
       )}
     >
       <button
@@ -85,7 +81,7 @@ const TaskCard = memo(function TaskCard({ task, onOpen }: { task: TaskDto; onOpe
           </span>
         </div>
       </button>
-    </motion.article>
+    </article>
   );
 });
 
