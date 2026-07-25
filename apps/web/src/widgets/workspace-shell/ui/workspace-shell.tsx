@@ -21,6 +21,7 @@ import {
   PlusIcon,
   ProjectsIcon,
   QueueIcon,
+  SearchIcon,
   SettingsIcon,
   SparkIcon,
   UserIcon,
@@ -34,6 +35,7 @@ import { useUiStore } from "@/store/use-ui-store";
 import { statusLabels, statusOrder, statusTone } from "@/lib/task-meta";
 import { getInitials } from "@/shared/lib/utils/string";
 import { workspaceNavItems } from "@/widgets/workspace-shell/config/navigation";
+import { openWorkspaceCommandMenu, WorkspaceCommandMenu } from "@/widgets/workspace-shell/ui/workspace-command-menu";
 
 export type { TaskScope, WorkspaceData } from "@/widgets/workspace-shell/model/types";
 export { filterTasksByScope } from "@/widgets/workspace-shell/lib/task-utils";
@@ -206,6 +208,16 @@ function WorkspaceSidebar({
           <PlusIcon size={18} />
           <span>Создать задачу</span>
           <kbd className="ml-auto rounded border border-white/20 bg-white/10 px-1.5 py-0.5 font-mono text-[10px] text-white/72">C</kbd>
+        </button>
+
+        <button
+          type="button"
+          onClick={openWorkspaceCommandMenu}
+          className="mt-2 flex min-h-10 w-full items-center gap-2.5 rounded-lg border border-border bg-white/70 px-3 text-left text-sm font-medium text-text/54 transition hover:bg-white hover:text-text"
+        >
+          <SearchIcon size={17} />
+          <span>Поиск и команды</span>
+          <kbd className="ml-auto rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px] text-text/42">Ctrl K</kbd>
         </button>
 
         <nav aria-label="Основная навигация" className="mt-6 space-y-1">
@@ -515,14 +527,24 @@ function WorkspaceSidebar({
             </div>
           </div>
 
-          <button
-            type="button"
-            aria-label="Создать задачу"
-            onClick={openTaskComposer}
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[#111827] text-white shadow-sm disabled:opacity-60"
-          >
-            <PlusIcon size={18} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              aria-label="Открыть поиск и команды"
+              onClick={openWorkspaceCommandMenu}
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-white text-text/54 shadow-sm"
+            >
+              <SearchIcon size={18} />
+            </button>
+            <button
+              type="button"
+              aria-label="Создать задачу"
+              onClick={openTaskComposer}
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[#111827] text-white shadow-sm"
+            >
+              <PlusIcon size={18} />
+            </button>
+          </div>
         </div>
 
         <div className="mt-3 grid grid-cols-5 gap-2">
@@ -687,6 +709,7 @@ export function WorkspacePage({
     <main className="min-h-screen bg-[#f6f7f9] text-text">
       <div className="flex min-h-screen flex-col lg:flex-row">
         <WorkspaceSidebar data={data} />
+        <WorkspaceCommandMenu hasProject={Boolean(data.selectedProjectId)} userId={data.userId} />
         <section className="min-w-0 flex-1 px-3 py-4 md:px-5 lg:px-6">
           <div className="mx-auto max-w-[1440px] space-y-4">
             <WorkspaceHeader title={title} description={description} data={data} />
