@@ -12,13 +12,11 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { TaskDto, TaskStatus } from "@tracker/types";
 import { Badge } from "@tracker/ui";
 import clsx from "clsx";
 import { motion } from "framer-motion";
-import { apiClient } from "@/lib/api-client";
-import { queryKeys } from "@/lib/query-keys";
+import { useTaskUpdate } from "@/features/task-update/model/use-task-update";
 import { priorityLabels, priorityTone, statusLabels, statusOrder, statusTone } from "@/lib/task-meta";
 import { formatRelativeDate } from "@/shared/lib/utils/date";
 import { getInitials } from "@/shared/lib/utils/string";
@@ -141,7 +139,6 @@ function BoardColumn({
 }
 
 export function KanbanBoard({ tasks, onOpenTask }: { tasks: TaskDto[]; onOpenTask: (taskId: string) => void }) {
-  const queryClient = useQueryClient();
   const selectedProjectId = useUiStore((state) => state.selectedProjectId);
 
   const sensors = useSensors(
@@ -150,14 +147,8 @@ export function KanbanBoard({ tasks, onOpenTask }: { tasks: TaskDto[]; onOpenTas
     }),
   );
 
-  const mutation = useMutation({
-    // Перетаскивание сразу сохраняет статус в API, а realtime разнесёт изменение другим клиентам.
-    mutationFn: ({ taskId, status }: { taskId: string; status: TaskStatus }) => apiClient.updateTask(taskId, { status }),
-    onSuccess: (task) => {
-      void queryClient.invalidateQueries({ queryKey: ["tasks", task.projectId] });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.task(task.id) });
-    },
-  });
+  // Перетаскивание сохраняет статус через общий mutation-слой, а realtime разнесёт изменение другим клиентам.
+  const mutation = useTaskUpdate();
 
   const handleDragEnd = ({ active, over }: DragEndEvent): void => {
     if (!over || !selectedProjectId) {
@@ -172,7 +163,7 @@ export function KanbanBoard({ tasks, onOpenTask }: { tasks: TaskDto[]; onOpenTas
       return;
     }
 
-    mutation.mutate({ taskId, status: nextStatus });
+    mutation.mutate({ taskId, input: { status: nextStatus } });
   };
 
   return (

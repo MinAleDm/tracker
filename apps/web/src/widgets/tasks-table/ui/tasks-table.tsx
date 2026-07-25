@@ -2,11 +2,9 @@
 
 import Link from "next/link";
 import type { Route } from "next";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { TaskDto, TaskPriority, TaskStatus, UserSummaryDto } from "@tracker/types";
 import { Badge, Button, Select } from "@tracker/ui";
-import { apiClient } from "@/lib/api-client";
-import { queryKeys } from "@/lib/query-keys";
+import { type TaskUpdateInput, useTaskUpdate } from "@/features/task-update/model/use-task-update";
 import { priorityLabels, priorityTone, statusLabels, statusOrder, statusTone } from "@/lib/task-meta";
 import { formatRelativeDate } from "@/shared/lib/utils/date";
 import { CommentIcon, UserIcon } from "@/shared/ui/tracker-icons";
@@ -20,18 +18,10 @@ function getNextStatus(status: TaskStatus): TaskStatus | null {
 }
 
 export function TasksTable({ tasks, users }: { tasks: TaskDto[]; users: UserSummaryDto[] }) {
-  const queryClient = useQueryClient();
-  const updateMutation = useMutation({
-    mutationFn: ({ task, input }: { task: TaskDto; input: Partial<{ status: TaskStatus; priority: TaskPriority; assigneeId: string | null }> }) =>
-      apiClient.updateTask(task.id, input),
-    onSuccess: async (task) => {
-      await queryClient.invalidateQueries({ queryKey: ["tasks", task.projectId] });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.task(task.id) });
-    },
-  });
+  const updateMutation = useTaskUpdate();
 
-  const updateTask = (task: TaskDto, input: Partial<{ status: TaskStatus; priority: TaskPriority; assigneeId: string | null }>) => {
-    updateMutation.mutate({ task, input });
+  const updateTask = (task: TaskDto, input: TaskUpdateInput) => {
+    updateMutation.mutate({ taskId: task.id, input });
   };
 
   if (tasks.length === 0) {
