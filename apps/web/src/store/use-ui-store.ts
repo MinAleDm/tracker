@@ -26,6 +26,7 @@ interface UiState {
   priority: TaskPriority | "ALL";
   assigneeId: string | "ALL";
   savedTaskViews: SavedTaskView[];
+  createTaskSignal: number;
   setHydrated: (value: boolean) => void;
   setSession: (input: { accessToken: string; refreshToken: string; user: AuthUserDto }) => void;
   updateTokens: (input: { accessToken: string; refreshToken: string }) => void;
@@ -39,6 +40,7 @@ interface UiState {
   saveCurrentTaskView: (name: string) => void;
   applyTaskView: (view: Pick<SavedTaskView, "search" | "status" | "priority" | "assigneeId">) => void;
   deleteTaskView: (id: string) => void;
+  requestTaskCreate: () => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -55,6 +57,7 @@ export const useUiStore = create<UiState>()(
       priority: "ALL",
       assigneeId: "ALL",
       savedTaskViews: [],
+      createTaskSignal: 0,
       setHydrated: (hydrated) => set({ hydrated }),
       setSession: ({ accessToken, refreshToken, user }) =>
         set({
@@ -110,6 +113,10 @@ export const useUiStore = create<UiState>()(
       deleteTaskView: (id) =>
         set((state) => ({
           savedTaskViews: state.savedTaskViews.filter((view) => view.id !== id),
+        })),
+      requestTaskCreate: () =>
+        set((state) => ({
+          createTaskSignal: state.createTaskSignal + 1,
         })),
     }),
     {

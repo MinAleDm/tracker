@@ -3,8 +3,7 @@
 import Link from "next/link";
 import type { Route } from "next";
 import { usePathname, useRouter } from "next/navigation";
-import { type ReactNode, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { type ReactNode, useEffect, useState } from "react";
 import type { ProjectDto } from "@tracker/types";
 import { Badge, Button, Select } from "@tracker/ui";
 import clsx from "clsx";
@@ -27,8 +26,6 @@ import {
   SparkIcon,
   UserIcon,
 } from "@/shared/ui/tracker-icons";
-import { apiClient } from "@/lib/api-client";
-import { queryKeys } from "@/lib/query-keys";
 import { countByStatus, getCompletion, taskKey } from "@/widgets/workspace-shell/lib/task-utils";
 import { getAttentionCounts, getDeliveryStats, getProjectPulse } from "@/widgets/workspace-shell/lib/workspace-insights";
 import { useWorkspaceData } from "@/widgets/workspace-shell/model/use-workspace-data";
@@ -98,9 +95,9 @@ function WorkspaceSidebar({
   const router = useRouter();
   const [activePanel, setActivePanel] = useState<SidebarPanel | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
-  const queryClient = useQueryClient();
   const clearSession = useUiStore((state) => state.clearSession);
   const setSelectedProjectId = useUiStore((state) => state.setSelectedProjectId);
+  const requestTaskCreate = useUiStore((state) => state.requestTaskCreate);
 
   const navigateTo = (href: Route): void => {
     router.push(href);
@@ -113,28 +110,38 @@ function WorkspaceSidebar({
     setActivePanel(null);
   };
 
-  const createTaskMutation = useMutation({
-    mutationFn: () => {
-      if (!data.selectedProjectId) {
-        throw new Error("Project is not selected");
-      }
-
-      return apiClient.createTask(data.selectedProjectId, {
-        title: `Новая задача ${new Date().toLocaleString("ru-RU")}`,
-        description: "Создано через кнопку быстрого создания в сайдбаре.",
-        priority: "MEDIUM",
-      });
-    },
-    onSuccess: async (task) => {
-      await queryClient.invalidateQueries({ queryKey: ["tasks", task.projectId] });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.task(task.id) });
-      router.push(`/tasks/${task.id}` as Route);
-      setActivePanel(null);
-    },
-    onError: () => {
+  const openTaskComposer = (): void => {
+    if (!data.selectedProjectId) {
       setActivePanel("projects");
-    },
-  });
+      return;
+    }
+
+    requestTaskCreate();
+    router.push("/tasks");
+    setActivePanel(null);
+  };
+
+  useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const isEditing = target?.matches("input, textarea, select, [contenteditable='true']");
+
+      if (event.key.toLowerCase() === "c" && !event.metaKey && !event.ctrlKey && !event.altKey && !isEditing) {
+        event.preventDefault();
+        if (!data.selectedProjectId) {
+          setActivePanel("projects");
+          return;
+        }
+
+        requestTaskCreate();
+        router.push("/tasks");
+        setActivePanel(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleShortcut);
+    return () => window.removeEventListener("keydown", handleShortcut);
+  }, [data.selectedProjectId, requestTaskCreate, router]);
 
   const railItems = [
     {
@@ -239,15 +246,7 @@ function WorkspaceSidebar({
           type="button"
           title="Создать задачу"
           aria-label="Создать задачу"
-          disabled={createTaskMutation.isPending}
-          onClick={() => {
-            if (!data.selectedProjectId) {
-              setActivePanel("projects");
-              return;
-            }
-
-            createTaskMutation.mutate();
-          }}
+          onClick={openTaskComposer}
           className="mt-7 grid h-10 w-10 place-items-center rounded-lg bg-[#3f76ff] text-white transition hover:bg-[#2f63d9] disabled:cursor-not-allowed disabled:opacity-60"
         >
           <PlusIcon size={22} />
@@ -521,15 +520,7 @@ function WorkspaceSidebar({
           <button
             type="button"
             aria-label="Создать задачу"
-            disabled={createTaskMutation.isPending}
-            onClick={() => {
-              if (!data.selectedProjectId) {
-                setActivePanel("projects");
-                return;
-              }
-
-              createTaskMutation.mutate();
-            }}
+            onClick={openTaskComposer}
             className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[#111827] text-white shadow-sm disabled:opacity-60"
           >
             <PlusIcon size={18} />

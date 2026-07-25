@@ -14,6 +14,7 @@ import { TasksTable } from "@/widgets/tasks-table/ui/tasks-table";
 import { countByStatus, filterTasksByScope, getCompletion } from "@/widgets/workspace-shell/lib/task-utils";
 import { getAttentionCounts, getDeliveryStats, getProjectPulse, getTeamWorkload } from "@/widgets/workspace-shell/lib/workspace-insights";
 import { type TaskScope, WorkspacePage } from "@/widgets/workspace-shell/ui/workspace-shell";
+import { useUiStore } from "@/store/use-ui-store";
 
 const scopes: Array<{ id: TaskScope; label: string }> = [
   { id: "all", label: "Все" },
@@ -94,6 +95,7 @@ function ProjectStarter({ projectId }: { projectId: string }) {
 
 export default function TasksPage() {
   const [scope, setScope] = useState<TaskScope>("all");
+  const createTaskSignal = useUiStore((state) => state.createTaskSignal);
 
   return (
     <WorkspacePage
@@ -159,7 +161,9 @@ export default function TasksPage() {
             </section>
 
             <BoardFilter users={data.members} />
-            {data.selectedProjectId ? <TaskCreate projectId={data.selectedProjectId} users={data.members} /> : null}
+            {data.selectedProjectId ? (
+              <TaskCreate projectId={data.selectedProjectId} users={data.members} focusSignal={createTaskSignal} />
+            ) : null}
             {data.selectedProjectId && data.tasks.length === 0 ? <ProjectStarter projectId={data.selectedProjectId} /> : null}
 
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
