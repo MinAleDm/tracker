@@ -16,7 +16,6 @@ import {
   BoardIcon,
   CalendarIcon,
   CheckCircleIcon,
-  GoalIcon,
   HistoryIcon,
   ListIcon,
   PlusIcon,
@@ -34,6 +33,7 @@ import { EmptyState } from "@/widgets/workspace-shell/ui/empty-state";
 import { useUiStore } from "@/store/use-ui-store";
 import { statusLabels, statusOrder, statusTone } from "@/lib/task-meta";
 import { getInitials } from "@/shared/lib/utils/string";
+import { workspaceNavItems } from "@/widgets/workspace-shell/config/navigation";
 
 export type { TaskScope, WorkspaceData } from "@/widgets/workspace-shell/model/types";
 export { filterTasksByScope } from "@/widgets/workspace-shell/lib/task-utils";
@@ -143,58 +143,6 @@ function WorkspaceSidebar({
     return () => window.removeEventListener("keydown", handleShortcut);
   }, [data.selectedProjectId, requestTaskCreate, router]);
 
-  const railItems = [
-    {
-      id: "tasks",
-      label: "Задачи",
-      icon: ListIcon,
-      active: pathname.startsWith("/tasks") || activePanel === "tasks",
-      onClick: () => setActivePanel("tasks"),
-    },
-    {
-      id: "projects",
-      label: "Проекты и портфели",
-      icon: ProjectsIcon,
-      active: activePanel === "projects",
-      onClick: () => setActivePanel("projects"),
-    },
-    {
-      id: "goals",
-      label: "Цели",
-      icon: GoalIcon,
-      active: activePanel === "goals",
-      onClick: () => setActivePanel("goals"),
-    },
-    {
-      id: "queues",
-      label: "Очереди",
-      icon: QueueIcon,
-      active: activePanel === "queues",
-      onClick: () => setActivePanel("queues"),
-    },
-    {
-      id: "boards",
-      label: "Доски задач",
-      icon: BoardIcon,
-      active: pathname.startsWith("/boards") || activePanel === "boards",
-      onClick: () => setActivePanel("boards"),
-    },
-    {
-      id: "dashboards",
-      label: "Дашборды и отчёты",
-      icon: ActivityIcon,
-      active: pathname.startsWith("/analytics") || activePanel === "dashboards",
-      onClick: () => setActivePanel("dashboards"),
-    },
-    {
-      id: "history",
-      label: "История",
-      icon: HistoryIcon,
-      active: activePanel === "history",
-      onClick: () => setActivePanel("history"),
-    },
-  ];
-
   const teamRole = roleLabels[data.organizationRole ?? data.userRole] ?? data.organizationRole ?? data.userRole;
   const personalTasks = data.tasks.filter((task) => task.assignee?.id === data.userId || task.creator.id === data.userId);
   const mobileRailItems = [
@@ -237,78 +185,127 @@ function WorkspaceSidebar({
 
   return (
     <>
-      <aside className="sticky top-0 hidden h-screen w-[72px] shrink-0 flex-col items-center overflow-hidden border-r border-black/[0.08] bg-[#f3f4f6] py-4 lg:flex">
-        <div className="grid h-10 w-10 place-items-center rounded-lg bg-[#1f2937]">
-          <span className="h-5 w-5 rounded-full border-[5px] border-white" />
-        </div>
+      <aside className="sticky top-0 hidden h-screen w-[240px] shrink-0 flex-col border-r border-border bg-[#f3f4f6] p-3 lg:flex">
+        <Link href="/" className="flex items-center gap-3 rounded-lg px-2 py-2">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#25282e] shadow-sm">
+            <span className="h-4 w-4 rounded-full border-[4px] border-white" />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold text-text">Tracker</span>
+            <span className="block truncate text-xs text-text/44">
+              {data.organizations.find((organization) => organization.id === data.activeOrganizationId)?.name ?? "Workspace"}
+            </span>
+          </span>
+        </Link>
 
         <button
           type="button"
-          title="Создать задачу"
-          aria-label="Создать задачу"
           onClick={openTaskComposer}
-          className="mt-7 grid h-10 w-10 place-items-center rounded-lg bg-[#3f76ff] text-white transition hover:bg-[#2f63d9] disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-3 flex min-h-10 w-full items-center gap-2.5 rounded-lg bg-accent px-3 text-left text-sm font-semibold text-white shadow-sm transition hover:bg-[#4f5bc2]"
         >
-          <PlusIcon size={22} />
+          <PlusIcon size={18} />
+          <span>Создать задачу</span>
+          <kbd className="ml-auto rounded border border-white/20 bg-white/10 px-1.5 py-0.5 font-mono text-[10px] text-white/72">C</kbd>
         </button>
 
-        <nav className="mt-4 flex flex-1 flex-col items-center gap-2">
-          {railItems.map((item) => {
+        <nav aria-label="Основная навигация" className="mt-6 space-y-1">
+          <p className="px-2 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-text/38">Рабочее пространство</p>
+          {workspaceNavItems.map((item) => {
             const Icon = item.icon;
+            const active = item.match(pathname);
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={clsx(
+                  "flex min-h-10 items-center gap-3 rounded-lg px-2.5 text-sm font-medium transition",
+                  active ? "bg-white text-text shadow-sm" : "text-text/60 hover:bg-white/70 hover:text-text",
+                )}
+              >
+                <Icon size={18} className={active ? "text-accent" : "text-text/46"} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="mt-6 space-y-1">
+          <p className="px-2 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-text/38">Контекст</p>
+          {[
+            { id: "projects" as const, label: "Проекты", icon: ProjectsIcon, count: data.projects.length },
+            { id: "queues" as const, label: "Очереди", icon: QueueIcon, count: personalTasks.length },
+            { id: "history" as const, label: "Активность", icon: HistoryIcon, count: null },
+          ].map((item) => {
+            const Icon = item.icon;
+            const active = activePanel === item.id;
 
             return (
               <button
                 key={item.id}
                 type="button"
-                title={item.label}
-                aria-label={item.label}
-                onClick={item.onClick}
+                aria-pressed={active}
+                onClick={() => setActivePanel(item.id)}
                 className={clsx(
-                  "grid h-10 w-10 place-items-center rounded-lg transition",
-                  item.active ? "bg-white text-[#1f2937] shadow-sm" : "text-[#4b5563] hover:bg-white hover:text-[#111827]",
+                  "flex min-h-10 w-full items-center gap-3 rounded-lg px-2.5 text-left text-sm font-medium transition",
+                  active ? "bg-white text-text shadow-sm" : "text-text/60 hover:bg-white/70 hover:text-text",
                 )}
               >
-                <Icon size={21} />
+                <Icon size={18} className={active ? "text-accent" : "text-text/46"} />
+                <span>{item.label}</span>
+                {item.count !== null ? <span className="ml-auto text-xs tabular-nums text-text/38">{item.count}</span> : null}
               </button>
             );
           })}
-        </nav>
+        </div>
 
-        <div className="relative flex flex-col items-center gap-2">
+        <div className="mt-auto rounded-xl border border-border bg-white/70 p-2">
           <button
             type="button"
-            title="Настройки трекера"
-            aria-label="Настройки трекера"
-            aria-pressed={activePanel === "settings"}
-            onClick={() => {
-              setProfileOpen(false);
-              setActivePanel("settings");
-            }}
-            className={clsx(
-              "grid h-10 w-10 place-items-center rounded-lg transition",
-              activePanel === "settings"
-                ? "bg-white text-[#111827] shadow-sm"
-                : "text-[#4b5563] hover:bg-white hover:text-[#111827]",
-            )}
+            onClick={() => setActivePanel("projects")}
+            className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition hover:bg-white"
           >
-            <SettingsIcon size={21} />
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-accent/10 font-mono text-[10px] font-bold text-accent">
+              {data.activeProject?.key?.slice(0, 2) ?? "—"}
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-semibold text-text">{data.activeProject?.name ?? "Выберите проект"}</span>
+              <span className="block text-xs text-text/44">{data.tasks.length} задач</span>
+            </span>
           </button>
 
-          <button
-            type="button"
-            title={data.userName}
-            aria-label={data.userName}
-            onClick={() => setProfileOpen((value) => !value)}
-            className={clsx(
-              "mt-2 grid h-10 w-10 place-items-center rounded-lg border border-white bg-[#111827] text-white shadow-sm transition",
-              profileOpen ? "ring-2 ring-[#3f76ff]/40" : "hover:bg-[#020617]",
-            )}
-          >
-            <UserIcon size={19} />
-          </button>
+          <div className="relative mt-1 flex items-center gap-1 border-t border-border pt-2">
+            <button
+              type="button"
+              aria-label="Настройки трекера"
+              aria-pressed={activePanel === "settings"}
+              onClick={() => {
+                setProfileOpen(false);
+                setActivePanel("settings");
+              }}
+              className="grid h-9 w-9 place-items-center rounded-lg text-text/48 transition hover:bg-white hover:text-text"
+            >
+              <SettingsIcon size={18} />
+            </button>
+
+            <button
+              type="button"
+              aria-label={`Профиль: ${data.userName}`}
+              onClick={() => setProfileOpen((value) => !value)}
+              className={clsx(
+                "flex min-w-0 flex-1 items-center gap-2 rounded-lg px-1.5 py-1 text-left transition hover:bg-white",
+                profileOpen && "bg-white",
+              )}
+            >
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-[#25282e] text-[10px] font-bold text-white">
+                {getInitials(data.userName)}
+              </span>
+              <span className="min-w-0 truncate text-xs font-semibold text-text">{data.userName}</span>
+            </button>
 
           {profileOpen ? (
-            <div className="absolute bottom-0 left-[58px] z-50 w-[320px] rounded-xl border border-black/[0.08] bg-white p-4 text-text shadow-[0_18px_50px_rgba(15,23,42,0.18)]">
+            <div className="absolute bottom-0 left-[232px] z-50 w-[320px] rounded-xl border border-border bg-white p-4 text-text shadow-[0_18px_50px_rgba(15,23,42,0.18)]">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{data.userName}</p>
@@ -329,11 +326,12 @@ function WorkspaceSidebar({
               </button>
             </div>
           ) : null}
+          </div>
         </div>
       </aside>
 
       {activePanel ? (
-        <div className="fixed inset-0 z-40 lg:left-[72px]">
+        <div className="fixed inset-0 z-40 lg:left-[240px]">
           <button
             type="button"
             aria-label="Закрыть панель"

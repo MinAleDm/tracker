@@ -22,7 +22,7 @@ export function SignInForm() {
         refreshToken: session.tokens.refreshToken,
         user: session.user,
       });
-      router.replace("/pages/my");
+      router.replace("/");
     },
   });
 

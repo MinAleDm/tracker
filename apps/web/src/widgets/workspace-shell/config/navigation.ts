@@ -18,18 +18,18 @@ export const workspaceNavItems: WorkspaceNavItem[] = [
     match: (pathname) => pathname === "/",
   },
   {
-    href: "/boards",
-    label: "Доски",
-    description: "Kanban workflow",
-    icon: BoardIcon,
-    match: (pathname) => pathname.startsWith("/boards"),
-  },
-  {
     href: "/tasks",
     label: "Задачи",
     description: "Список и карточки",
     icon: ListIcon,
     match: (pathname) => pathname.startsWith("/tasks"),
+  },
+  {
+    href: "/boards",
+    label: "Доски",
+    description: "Kanban workflow",
+    icon: BoardIcon,
+    match: (pathname) => pathname.startsWith("/boards"),
   },
   {
     href: "/analytics",
