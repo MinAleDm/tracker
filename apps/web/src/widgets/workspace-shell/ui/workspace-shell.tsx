@@ -588,76 +588,50 @@ function WorkspaceHeader({
   ];
 
   return (
-    <header className="tracker-panel rounded-xl">
-      <div className="grid gap-4 border-b border-black/[0.08] px-4 py-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center md:px-5">
+    <header className="tracker-panel rounded-xl px-4 py-4 md:px-5">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase text-text/48">
-            <span>{data.activeProject?.key ?? "WORKSPACE"}</span>
-            <span className="rounded-md bg-black/[0.05] px-2 py-0.5 text-[11px] text-text/56">
-              {data.organizations.find((organization) => organization.id === data.activeOrganizationId)?.name ?? "Organization"}
-            </span>
-            <span className="rounded-md bg-[#e8f0ff] px-2 py-0.5 text-[11px] text-[#2854b8]">{pulse.label}</span>
+          <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-text/44">
+            <span>{data.organizations.find((organization) => organization.id === data.activeOrganizationId)?.name ?? "Workspace"}</span>
+            <span aria-hidden="true">/</span>
+            <span className="font-mono font-semibold text-text/58">{data.activeProject?.key ?? "PROJECT"}</span>
+            <span className="rounded-md bg-accent/10 px-2 py-0.5 font-semibold text-accent">{pulse.label}</span>
           </div>
-          <div className="mt-3 flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
-            <div className="min-w-0">
-              <h1 className="truncate text-2xl font-semibold text-text md:text-3xl">{title}</h1>
-              <p className="mt-1 max-w-3xl text-sm leading-6 text-text/58">{description}</p>
-            </div>
-            <div className="flex shrink-0 flex-wrap items-center gap-2 text-xs text-text/56">
-              {data.projects.length > 0 ? (
-                <Select
-                  aria-label="Текущий проект"
-                  value={data.selectedProjectId ?? ""}
-                  onChange={(event) => setSelectedProjectId(event.target.value || null)}
-                  className="w-[220px] border-black/[0.08] bg-white py-1.5 text-xs font-semibold"
-                >
-                  {data.projects.map((project) => (
-                    <option key={project.id} value={project.id}>
-                      {project.key} · {project.name}
-                    </option>
-                  ))}
-                </Select>
-              ) : null}
-              <span className="rounded-md border border-black/[0.08] bg-[#f8fafc] px-2.5 py-1">Участники: {data.members.length}</span>
-              <span className="rounded-md border border-black/[0.08] bg-[#f8fafc] px-2.5 py-1">
-                Открытые: {data.tasks.length - countByStatus(data.tasks, "DONE")}
-              </span>
-              <span className="rounded-md border border-black/[0.08] bg-[#f8fafc] px-2.5 py-1">Пульс: {pulse.score}</span>
-            </div>
+          <h1 className="mt-2 truncate text-2xl font-semibold tracking-[-0.02em] text-text md:text-[28px]">{title}</h1>
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-text/54">{description}</p>
+        </div>
+
+        <div className="flex min-w-0 flex-col gap-3 xl:w-[620px] xl:items-end">
+          {data.projects.length > 0 ? (
+            <Select
+              aria-label="Текущий проект"
+              value={data.selectedProjectId ?? ""}
+              onChange={(event) => setSelectedProjectId(event.target.value || null)}
+              className="max-w-full bg-white py-2 text-xs font-semibold sm:w-[260px]"
+            >
+              {data.projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.key} · {project.name}
+                </option>
+              ))}
+            </Select>
+          ) : null}
+
+          <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4">
+            {highlights.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <article key={item.label} className="flex items-center gap-2 rounded-lg border border-border bg-muted/60 px-3 py-2">
+                  <Icon size={15} className="shrink-0 text-text/36" />
+                  <span className="min-w-0">
+                    <span className="block truncate text-[11px] font-medium text-text/42">{item.label}</span>
+                    <span className="block text-sm font-semibold tabular-nums text-text">{item.value}</span>
+                  </span>
+                </article>
+              );
+            })}
           </div>
-        </div>
-
-        <div className="grid min-w-[280px] gap-2 sm:grid-cols-2 xl:w-[420px]">
-          {highlights.map((item) => {
-            const Icon = item.icon;
-
-            return (
-              <article key={item.label} className="rounded-lg border border-black/[0.08] bg-[#f8fafc] px-3 py-2">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-xs font-medium text-text/48">{item.label}</p>
-                  <Icon size={15} className="text-text/42" />
-                </div>
-                <p className="mt-1 text-xl font-semibold text-text">{item.value}</p>
-              </article>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="grid gap-2 px-4 py-3 text-sm text-text/56 md:grid-cols-3 md:px-5">
-        <div className="rounded-lg bg-[#f8fafc] px-3 py-2">
-          <p className="font-semibold text-text">{data.activeProject?.name ?? "Проект не выбран"}</p>
-          <p className="mt-1">Контекст для фильтров, досок и аналитики.</p>
-        </div>
-        <div className="rounded-lg bg-[#f8fafc] px-3 py-2">
-          <p className="font-semibold text-text">Роль в пространстве</p>
-          <p className="mt-1">{data.organizationRole ?? data.userRole}</p>
-        </div>
-        <div className="rounded-lg bg-[#f8fafc] px-3 py-2">
-          <p className="font-semibold text-text">Темп команды</p>
-          <p className="mt-1">
-            {delivery.closed >= delivery.created ? "Закрываем быстрее, чем создаём." : "Бэклог растёт быстрее delivery, нужен контроль входящего потока."}
-          </p>
         </div>
       </div>
     </header>
@@ -702,8 +676,8 @@ export function WorkspacePage({
     <main className="min-h-screen bg-[#f6f7f9] text-text">
       <div className="flex min-h-screen flex-col lg:flex-row">
         <WorkspaceSidebar data={data} />
-        <section className="min-w-0 flex-1 px-3 py-4 md:px-5 lg:px-7">
-          <div className="mx-auto max-w-[1500px] space-y-5">
+        <section className="min-w-0 flex-1 px-3 py-4 md:px-5 lg:px-6">
+          <div className="mx-auto max-w-[1440px] space-y-4">
             <WorkspaceHeader title={title} description={description} data={data} />
             {data.projects.length === 0 ? (
               <EmptyState
