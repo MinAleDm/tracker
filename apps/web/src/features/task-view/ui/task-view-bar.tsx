@@ -30,12 +30,7 @@ export function TaskViewBar({ userId }: { userId: string }) {
   const saveCurrentTaskView = useUiStore((state) => state.saveCurrentTaskView);
 
   const currentFilters = useMemo(
-    () => ({
-      search,
-      status,
-      priority,
-      assigneeId,
-    }),
+    () => ({ search, status, priority, assigneeId }),
     [assigneeId, priority, search, status],
   );
 
@@ -67,112 +62,67 @@ export function TaskViewBar({ userId }: { userId: string }) {
 
   const activePresetId = presets.find((preset) => areFiltersEqual(preset.filters, currentFilters))?.id ?? null;
   const activeSavedViewId = savedTaskViews.find((view) => areFiltersEqual(view, currentFilters))?.id ?? null;
-  const customDisabled =
-    currentFilters.search.trim().length === 0 &&
-    currentFilters.status === "ALL" &&
-    currentFilters.priority === "ALL" &&
-    currentFilters.assigneeId === "ALL";
+  const hasCustomFilters = !activePresetId && !activeSavedViewId;
 
   return (
-    <section className="tracker-panel rounded-xl p-3">
-      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="mr-1 text-xs font-semibold uppercase text-text/42">Views</p>
-            {presets.map((preset) => (
-              <button
-                key={preset.id}
-                type="button"
-                onClick={() => applyTaskView(preset.filters)}
-                className={clsx(
-                  "rounded-lg border px-3 py-1.5 text-sm font-semibold transition",
-                  activePresetId === preset.id
-                    ? "border-[#1f2937] bg-[#1f2937] text-white shadow-sm"
-                    : "border-black/[0.08] bg-white/80 text-text/68 hover:border-black/[0.16] hover:text-text",
-                )}
-              >
-                {preset.label}
-              </button>
-            ))}
+    <section className="tracker-panel flex min-w-0 flex-col gap-2 rounded-xl p-2 sm:flex-row sm:items-center">
+      <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
+        <span className="shrink-0 px-2 text-[11px] font-semibold uppercase tracking-wide text-text/36">Views</span>
+        {presets.map((preset) => (
+          <button
+            key={preset.id}
+            type="button"
+            onClick={() => applyTaskView(preset.filters)}
+            className={clsx(
+              "shrink-0 rounded-lg px-3 py-2 text-sm font-medium transition",
+              activePresetId === preset.id ? "bg-[#25282e] text-white shadow-sm" : "text-text/58 hover:bg-muted hover:text-text",
+            )}
+          >
+            {preset.label}
+          </button>
+        ))}
 
-            {savedTaskViews.map((view) => (
-              <div key={view.id} className="group inline-flex items-center rounded-lg border border-black/[0.08] bg-[#f3f5f7] pr-1">
-                <button
-                  type="button"
-                  onClick={() => applyTaskView(view)}
-                  className={clsx(
-                    "rounded-lg px-3 py-1.5 text-sm font-semibold transition",
-                    activeSavedViewId === view.id ? "bg-[#dce7ff] text-[#20437a]" : "text-text/68 hover:text-text",
-                  )}
-                >
-                  {view.name}
-                </button>
-                <button
-                  type="button"
-                  aria-label={`Удалить view ${view.name}`}
-                  onClick={() => deleteTaskView(view.id)}
-                  className="rounded-md px-2 py-1 text-xs font-bold text-text/34 transition hover:bg-black/[0.06] hover:text-text"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="max-w-full rounded-lg border border-black/[0.08] bg-[#f8fafc] p-2 xl:min-w-[360px]">
-          {isComposing ? (
-            <form
-              className="flex flex-col gap-2 sm:flex-row"
-              onSubmit={(event) => {
-                event.preventDefault();
-
-                if (name.trim().length < 2) {
-                  return;
-                }
-
-                saveCurrentTaskView(name);
-                setName("");
-                setIsComposing(false);
-              }}
+        {savedTaskViews.map((view) => (
+          <div key={view.id} className={clsx("flex shrink-0 items-center rounded-lg", activeSavedViewId === view.id ? "bg-accent/10" : "hover:bg-muted")}>
+            <button
+              type="button"
+              onClick={() => applyTaskView(view)}
+              className={clsx("px-3 py-2 text-sm font-medium", activeSavedViewId === view.id ? "text-accent" : "text-text/58")}
             >
-              <Input autoFocus value={name} onChange={(event) => setName(event.target.value)} placeholder="Название view" className="bg-white" />
-              <div className="flex gap-2">
-                <Button type="submit" variant="primary" className="px-4">
-                  Сохранить
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="px-4"
-                  onClick={() => {
-                    setName("");
-                    setIsComposing(false);
-                  }}
-                >
-                  Отмена
-                </Button>
-              </div>
-            </form>
-          ) : (
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-text">Текущее представление</p>
-                <p className="mt-0.5 text-xs text-text/52">
-                  {activeSavedViewId
-                    ? "Вы работаете в сохранённой кастомной выборке."
-                    : activePresetId
-                      ? "Активен системный view для быстрого переключения контекста."
-                      : "Сейчас открыт несохранённый фильтр. Его можно закрепить как view."}
-                </p>
-              </div>
-              <Button type="button" variant="secondary" disabled={customDisabled} onClick={() => setIsComposing(true)}>
-                Сохранить view
-              </Button>
-            </div>
-          )}
-        </div>
+              {view.name}
+            </button>
+            <button
+              type="button"
+              aria-label={`Удалить view ${view.name}`}
+              onClick={() => deleteTaskView(view.id)}
+              className="mr-1 rounded px-1.5 py-1 text-xs text-text/32 hover:bg-white hover:text-text"
+            >
+              ×
+            </button>
+          </div>
+        ))}
       </div>
+
+      {isComposing ? (
+        <form
+          className="flex shrink-0 items-center gap-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (name.trim().length < 2) return;
+            saveCurrentTaskView(name);
+            setName("");
+            setIsComposing(false);
+          }}
+        >
+          <Input autoFocus value={name} onChange={(event) => setName(event.target.value)} placeholder="Название view" className="w-44 py-2" />
+          <Button type="submit" variant="primary">Сохранить</Button>
+          <Button type="button" variant="ghost" aria-label="Отменить сохранение view" onClick={() => setIsComposing(false)}>×</Button>
+        </form>
+      ) : (
+        <Button type="button" variant="ghost" className="shrink-0" disabled={!hasCustomFilters} onClick={() => setIsComposing(true)}>
+          + Сохранить view
+        </Button>
+      )}
     </section>
   );
 }
