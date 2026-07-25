@@ -10,15 +10,15 @@
     "test": "node --test --test-concurrency=1 -r ts-node/register test/*.test.ts"
   },
   "dependencies": {
-    "@nestjs/common": "^11.0.3",
+    "@nestjs/common": "^11.1.28",
     "@nestjs/config": "^4.0.0",
-    "@nestjs/core": "^11.0.3",
+    "@nestjs/core": "^11.1.28",
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/passport": "^11.0.0",
-    "@nestjs/platform-express": "^11.0.3",
-    "@nestjs/platform-socket.io": "^11.0.3",
-    "@nestjs/swagger": "^11.0.3",
-    "@nestjs/websockets": "^11.0.3",
+    "@nestjs/platform-express": "^11.1.28",
+    "@nestjs/platform-socket.io": "^11.1.28",
+    "@nestjs/swagger": "^11.4.6",
+    "@nestjs/websockets": "^11.1.28",
     "@prisma/client": "^6.5.0",
     "@tracker/db": "workspace:*",
     "@tracker/types": "workspace:*",
@@ -34,8 +34,8 @@
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
-    "@nestjs/cli": "^11.0.3",
-    "@nestjs/testing": "^11.1.19",
+    "@nestjs/cli": "^11.0.24",
+    "@nestjs/testing": "^11.1.28",
     "@types/bcryptjs": "^2.4.6",
     "@types/express": "^5.0.0",
     "@types/node": "^22.13.10",
