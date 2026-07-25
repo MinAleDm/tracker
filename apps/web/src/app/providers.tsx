@@ -20,7 +20,7 @@ export function Providers({ children }: PropsWithChildren) {
   );
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider attribute="class" forcedTheme="light" enableSystem={false}>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </ThemeProvider>
   );

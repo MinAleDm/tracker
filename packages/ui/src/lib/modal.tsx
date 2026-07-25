@@ -8,7 +8,12 @@ interface ModalProps extends PropsWithChildren {
 
 export function Modal({ children, title, subtitle, onClose }: ModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4" onClick={onClose}>
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4"
+      onClick={onClose}
+    >
       <div
         className="w-full max-w-4xl rounded-xl border border-border bg-surface p-6 shadow-soft"
         onClick={(event) => event.stopPropagation()}

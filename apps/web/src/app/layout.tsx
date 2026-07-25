@@ -4,13 +4,16 @@ import { Providers } from "@/app/providers";
 import "@/app/globals.css";
 
 export const metadata: Metadata = {
-  title: "Tracker Platform",
-  description: "Production-grade task tracking workspace built on Next.js and NestJS",
+  title: {
+    default: "Tracker",
+    template: "%s · Tracker",
+  },
+  description: "Командный трекер задач с досками, очередями и аналитикой рабочего потока.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="ru" suppressHydrationWarning>
       <body>
         <Providers>{children}</Providers>
       </body>
