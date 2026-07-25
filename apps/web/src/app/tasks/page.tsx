@@ -10,6 +10,7 @@ import { TaskCreate } from "@/features/task-create/ui/task-create";
 import { TaskViewBar } from "@/features/task-view/ui/task-view-bar";
 import { apiClient } from "@/lib/api-client";
 import { BoardIcon, PlusIcon } from "@/shared/ui/tracker-icons";
+import { SkeletonBoard } from "@/shared/ui/skeleton-board";
 import { useUiStore } from "@/store/use-ui-store";
 import { TasksTable } from "@/widgets/tasks-table/ui/tasks-table";
 import { countByStatus, filterTasksByScope } from "@/widgets/workspace-shell/lib/task-utils";
@@ -128,7 +129,13 @@ export default function TasksPage() {
                 </div>
               </div>
 
-              <TasksTable tasks={scopedTasks} users={data.members} />
+              {data.isLoadingTasks ? (
+                <div className="p-4">
+                  <SkeletonBoard />
+                </div>
+              ) : (
+                <TasksTable tasks={scopedTasks} users={data.members} />
+              )}
             </section>
           </div>
         );

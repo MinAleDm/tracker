@@ -7,6 +7,7 @@ import { BoardFilter } from "@/features/board-filter/ui/board-filter";
 import { TaskCreate } from "@/features/task-create/ui/task-create";
 import { TaskViewBar } from "@/features/task-view/ui/task-view-bar";
 import { statusLabels, statusOrder, statusTone } from "@/lib/task-meta";
+import { SkeletonBoard } from "@/shared/ui/skeleton-board";
 import { KanbanBoard } from "@/widgets/kanban-board/ui/kanban-board";
 import { countByStatus } from "@/widgets/workspace-shell/lib/task-utils";
 import { WorkspacePage } from "@/widgets/workspace-shell/ui/workspace-shell";
@@ -32,7 +33,11 @@ export default function BoardsPage() {
             ))}
           </section>
 
-          <KanbanBoard tasks={data.tasks} onOpenTask={(taskId) => router.push(`/tasks/${taskId}` as Route)} />
+          {data.isLoadingTasks ? (
+            <SkeletonBoard />
+          ) : (
+            <KanbanBoard tasks={data.tasks} onOpenTask={(taskId) => router.push(`/tasks/${taskId}` as Route)} />
+          )}
         </div>
       )}
     </WorkspacePage>

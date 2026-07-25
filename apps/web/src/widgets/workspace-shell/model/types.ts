@@ -5,6 +5,7 @@ export type TaskScope = "all" | "mine" | "unassigned" | "review";
 export type WorkspaceData = {
   activeOrganizationId: string | null;
   activeProject: ProjectDto | null;
+  isLoadingWorkspace: boolean;
   isLoadingTasks: boolean;
   members: UserSummaryDto[];
   organizations: OrganizationDto[];
@@ -16,4 +17,6 @@ export type WorkspaceData = {
   userName: string;
   userRole: string;
   organizationRole: string | null;
+  workspaceError: boolean;
+  retryWorkspace: () => void;
 };

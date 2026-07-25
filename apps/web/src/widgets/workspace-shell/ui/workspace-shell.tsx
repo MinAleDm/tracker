@@ -672,6 +672,17 @@ export function WorkspacePage({
     );
   }
 
+  if (data.isLoadingWorkspace) {
+    return (
+      <main className="min-h-screen bg-surface p-5">
+        <div className="mx-auto max-w-[1200px]">
+          <div className="mb-5 h-24 animate-pulse rounded-xl border border-border bg-card" />
+          <SkeletonBoard />
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[#f6f7f9] text-text">
       <div className="flex min-h-screen flex-col lg:flex-row">
@@ -679,7 +690,20 @@ export function WorkspacePage({
         <section className="min-w-0 flex-1 px-3 py-4 md:px-5 lg:px-6">
           <div className="mx-auto max-w-[1440px] space-y-4">
             <WorkspaceHeader title={title} description={description} data={data} />
-            {data.projects.length === 0 ? (
+            {data.workspaceError ? (
+              <section className="tracker-panel rounded-xl px-6 py-12 text-center">
+                <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-rose-50 text-rose-600">
+                  <ActivityIcon size={20} />
+                </div>
+                <h2 className="mt-4 text-lg font-semibold text-text">Не удалось загрузить рабочее пространство</h2>
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-text/54">
+                  Проверьте соединение с API и повторите запрос. Ваша сессия и локальные фильтры сохранены.
+                </p>
+                <Button type="button" variant="primary" className="mt-5" onClick={data.retryWorkspace}>
+                  Повторить
+                </Button>
+              </section>
+            ) : data.projects.length === 0 ? (
               <EmptyState
                 title="Создайте проект"
                 description="После создания проекта здесь появятся задачи, доски и рабочая аналитика."

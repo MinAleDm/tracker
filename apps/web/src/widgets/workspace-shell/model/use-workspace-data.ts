@@ -105,6 +105,9 @@ export function useWorkspaceData(): WorkspaceData | null {
   return {
     activeOrganizationId,
     activeProject: projectsQuery.data?.find((project) => project.id === effectiveProjectId) ?? projectsQuery.data?.[0] ?? null,
+    isLoadingWorkspace:
+      organizationsQuery.isLoading ||
+      Boolean(activeOrganizationId && (projectsQuery.isLoading || membersQuery.isLoading)),
     isLoadingTasks: tasksQuery.isLoading,
     members: membersQuery.data ?? [],
     organizations: organizationsQuery.data ?? [],
@@ -116,5 +119,16 @@ export function useWorkspaceData(): WorkspaceData | null {
     userName: user.name,
     userRole: user.role,
     organizationRole: organizationsQuery.data?.find((organization) => organization.id === activeOrganizationId)?.role ?? null,
+    workspaceError: Boolean(organizationsQuery.error || projectsQuery.error || membersQuery.error || tasksQuery.error),
+    retryWorkspace: () => {
+      void organizationsQuery.refetch();
+      if (activeOrganizationId) {
+        void projectsQuery.refetch();
+        void membersQuery.refetch();
+      }
+      if (effectiveProjectId) {
+        void tasksQuery.refetch();
+      }
+    },
   };
 }
