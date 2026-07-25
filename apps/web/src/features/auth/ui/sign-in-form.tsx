@@ -27,7 +27,7 @@ export function SignInForm() {
   });
 
   return (
-    <main className="grid min-h-screen place-items-center px-4 py-8">
+    <main id="main-content" className="grid min-h-screen place-items-center px-4 py-8">
       <div className="grid w-full max-w-6xl overflow-hidden rounded-xl bg-[#111827] shadow-[0_40px_120px_rgba(15,23,42,0.34)] lg:grid-cols-[1.1fr_0.9fr]">
         <section className="relative min-h-[520px] overflow-hidden p-8 text-white md:p-12">
           <div className="absolute -right-16 -top-16 h-72 w-72 rounded-full bg-[#f97316]/25 blur-3xl" />
@@ -73,6 +73,7 @@ export function SignInForm() {
 
             <form
               className="mt-8 space-y-4"
+              aria-busy={mutation.isPending}
               onSubmit={(event) => {
                 event.preventDefault();
                 mutation.mutate();
@@ -81,8 +82,16 @@ export function SignInForm() {
               <label className="block text-sm font-semibold text-text">
                 <span className="mb-2 block text-text/54">Email</span>
                 <Input
+                  type="email"
+                  name="email"
+                  autoComplete="email"
+                  inputMode="email"
+                  required
                   value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  onChange={(event) => {
+                    setEmail(event.target.value);
+                    mutation.reset();
+                  }}
                   className="rounded-lg border-[#d7dde8] bg-[#f8fafc] py-3.5"
                 />
               </label>
@@ -91,14 +100,21 @@ export function SignInForm() {
                 <span className="mb-2 block text-text/54">Пароль</span>
                 <Input
                   type="password"
+                  name="password"
+                  autoComplete="current-password"
+                  required
+                  minLength={8}
                   value={password}
-                  onChange={(event) => setPassword(event.target.value)}
+                  onChange={(event) => {
+                    setPassword(event.target.value);
+                    mutation.reset();
+                  }}
                   className="rounded-lg border-[#d7dde8] bg-[#f8fafc] py-3.5"
                 />
               </label>
 
               {mutation.error ? (
-                <p className="rounded-lg bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+                <p role="alert" className="rounded-lg bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
                   Не удалось войти. Проверьте, что API и seed-данные запущены.
                 </p>
               ) : null}
@@ -109,7 +125,7 @@ export function SignInForm() {
                 className="w-full rounded-lg bg-[#111827] py-3.5 text-base hover:bg-[#020617]"
                 disabled={mutation.isPending}
               >
-                {mutation.isPending ? "Входим..." : "Открыть трекер"}
+                <span aria-live="polite">{mutation.isPending ? "Входим..." : "Открыть трекер"}</span>
               </Button>
             </form>
           </Card>

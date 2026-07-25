@@ -45,10 +45,12 @@ export function TasksTable({ tasks, users }: { tasks: TaskDto[]; users: UserSumm
       <div className="divide-y divide-border">
         {tasks.map((task) => {
           const stale = isTaskStale(task);
+          const isUpdating = updateMutation.isPending && updateMutation.variables?.taskId === task.id;
 
           return (
             <article
               key={task.id}
+              aria-busy={isUpdating}
               className={`grid gap-3 px-4 py-3 transition hover:bg-muted/45 xl:items-center ${rowGrid}`}
             >
               <div>
@@ -79,7 +81,7 @@ export function TasksTable({ tasks, users }: { tasks: TaskDto[]; users: UserSumm
                 <Select
                   aria-label={`Приоритет задачи ${task.title}`}
                   value={task.priority}
-                  disabled={updateMutation.isPending}
+                  disabled={isUpdating}
                   onChange={(event) => updateTask(task, { priority: event.target.value as TaskPriority })}
                   className="py-1.5 text-xs"
                 >
@@ -96,7 +98,7 @@ export function TasksTable({ tasks, users }: { tasks: TaskDto[]; users: UserSumm
                 <Select
                   aria-label={`Исполнитель задачи ${task.title}`}
                   value={task.assignee?.id ?? ""}
-                  disabled={updateMutation.isPending}
+                  disabled={isUpdating}
                   onChange={(event) => updateTask(task, { assigneeId: event.target.value || null })}
                   className="py-1.5 text-xs"
                 >
@@ -116,7 +118,7 @@ export function TasksTable({ tasks, users }: { tasks: TaskDto[]; users: UserSumm
                   <Select
                     aria-label={`Статус задачи ${task.title}`}
                     value={task.status}
-                    disabled={updateMutation.isPending}
+                    disabled={isUpdating}
                     onChange={(event) => updateTask(task, { status: event.target.value as TaskStatus })}
                     className="min-w-0 py-1.5 text-xs"
                   >
@@ -132,6 +134,7 @@ export function TasksTable({ tasks, users }: { tasks: TaskDto[]; users: UserSumm
               <div>
                 <FieldLabel>Обновлено</FieldLabel>
                 <p className="text-xs text-text/46">{formatRelativeDate(task.updatedAt)}</p>
+                {isUpdating ? <p className="mt-1 text-xs font-semibold text-accent">Сохраняю…</p> : null}
                 <Link href={`/tasks/${task.id}` as Route} className="mt-1 inline-flex text-xs font-semibold text-accent hover:underline">
                   Открыть →
                 </Link>

@@ -676,7 +676,7 @@ export function WorkspacePage({
 
   if (!hydrated) {
     return (
-      <main className="min-h-screen bg-[#f6f7f9] p-5">
+      <main id="main-content" className="min-h-screen bg-[#f6f7f9] p-5">
         <SkeletonBoard />
       </main>
     );
@@ -688,7 +688,7 @@ export function WorkspacePage({
 
   if (!data) {
     return (
-      <main className="min-h-screen bg-[#f6f7f9] p-5">
+      <main id="main-content" className="min-h-screen bg-[#f6f7f9] p-5">
         <SkeletonBoard />
       </main>
     );
@@ -696,7 +696,7 @@ export function WorkspacePage({
 
   if (data.isLoadingWorkspace) {
     return (
-      <main className="min-h-screen bg-surface p-5">
+      <main id="main-content" className="min-h-screen bg-surface p-5">
         <div className="mx-auto max-w-[1200px]">
           <div className="mb-5 h-24 animate-pulse rounded-xl border border-border bg-card" />
           <SkeletonBoard />
@@ -706,7 +706,7 @@ export function WorkspacePage({
   }
 
   return (
-    <main className="min-h-screen bg-[#f6f7f9] text-text">
+    <main id="main-content" className="min-h-screen bg-[#f6f7f9] text-text">
       <div className="flex min-h-screen flex-col lg:flex-row">
         <WorkspaceSidebar data={data} />
         <WorkspaceCommandMenu hasProject={Boolean(data.selectedProjectId)} userId={data.userId} />
