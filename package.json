@@ -21,7 +21,14 @@
   },
   "devDependencies": {
     "eslint": "^8.57.1",
-    "eslint-config-next": "15.5.15",
-    "typescript": "^5.8.2"
+    "eslint-config-next": "15.5.18",
+    "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "deepmerge-ts": "8.0.0",
+      "postcss": "8.5.26",
+      "sharp": "0.35.0"
+    }
   }
 }
