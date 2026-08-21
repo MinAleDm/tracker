@@ -1,0 +1,33 @@
+name: Предложение функции
+description: Новый сценарий или улучшение Tracker
+title: "feat: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Какую проблему нужно решить?
+      description: Опишите пользовательский сценарий, а не только желаемую реализацию.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Предлагаемое решение
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Альтернативы и компромиссы
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Область изменения
+      options:
+        - label: Frontend
+        - label: API
+        - label: База данных
+        - label: Realtime
+        - label: Deployment / operations

@@ -1,0 +1,56 @@
+name: Сообщение об ошибке
+description: Воспроизводимая проблема в Tracker
+title: "bug: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: Спасибо за отчёт. Уязвимости отправляйте приватно через Security Advisory.
+  - type: textarea
+    id: description
+    attributes:
+      label: Что произошло?
+      description: Опишите фактическое и ожидаемое поведение.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Шаги воспроизведения
+      placeholder: "1. ...\n2. ...\n3. ..."
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Версия или commit SHA
+      placeholder: v1.1.0 или abc1234
+    validations:
+      required: true
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Среда
+      options:
+        - Локальная разработка
+        - Docker Compose
+        - Kubernetes
+        - Другая
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Логи и скриншоты
+      description: Удалите секреты, токены, cookie и персональные данные.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Проверки
+      options:
+        - label: Я проверил существующие issues.
+          required: true
+        - label: Отчёт не содержит секретов и не описывает уязвимость.
+          required: true

@@ -1,0 +1,9 @@
+# Default ownership. More specific rules below take precedence.
+* @minkinad
+
+/apps/api/ @minkinad
+/apps/web/ @minkinad
+/packages/db/ @minkinad
+/k8s/ @minkinad
+/.github/ @minkinad
+/SECURITY.md @minkinad
