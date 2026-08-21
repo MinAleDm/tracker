@@ -2,11 +2,6 @@ name: Dependency Review
 
 on:
   pull_request:
-    paths:
-      - "**/package.json"
-      - "pnpm-lock.yaml"
-      - ".github/dependency-review-config.yml"
-      - ".github/workflows/dependency-review.yml"
 
 permissions:
   contents: read
