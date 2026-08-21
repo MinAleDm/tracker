@@ -627,6 +627,9 @@ function createProjectsRepository(
           membership.organizationId === organizationId,
       );
     },
+    async findAccessibleById(projectId: string, userId: string) {
+      return store.hasProjectAccess(userId, projectId) ? { id: projectId } : null;
+    },
   } as ProjectsRepository;
 }
 

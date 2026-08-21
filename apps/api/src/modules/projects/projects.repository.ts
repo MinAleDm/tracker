@@ -54,4 +54,18 @@ export class ProjectsRepository {
 
     return Boolean(membership);
   }
+
+  findAccessibleById(projectId: string, userId: string) {
+    return this.prisma.project.findFirst({
+      where: {
+        id: projectId,
+        organization: {
+          memberships: {
+            some: { userId },
+          },
+        },
+      },
+      select: { id: true },
+    });
+  }
 }

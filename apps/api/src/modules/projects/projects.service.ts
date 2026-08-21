@@ -51,4 +51,8 @@ export class ProjectsService {
       taskCount: project._count.tasks,
     };
   }
+
+  async canAccessProject(userId: string, projectId: string): Promise<boolean> {
+    return Boolean(await this.projectsRepository.findAccessibleById(projectId, userId));
+  }
 }

@@ -12,8 +12,20 @@ async function waitForConnection(socket: Socket) {
 }
 
 async function subscribeToProject(socket: Socket, projectId: string) {
-  await new Promise<void>((resolve) => {
-    socket.emit("project:subscribe", projectId, () => resolve());
+  return new Promise<{ subscribed?: string; status?: string; message?: string }>((resolve) => {
+    socket.emit("project:subscribe", projectId, (response: { subscribed?: string; status?: string; message?: string }) => resolve(response));
+  });
+}
+
+async function waitForSubscriptionError(socket: Socket, projectId: string) {
+  return new Promise<{ status?: string; message?: string }>((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new Error("Timed out waiting for subscription error")), 3_000);
+
+    socket.once("exception", (response) => {
+      clearTimeout(timeout);
+      resolve(response as { status?: string; message?: string });
+    });
+    socket.emit("project:subscribe", projectId);
   });
 }
 
@@ -81,7 +93,8 @@ describe("realtime flow", () => {
     socketsToClose.add(socket);
 
     await waitForConnection(socket);
-    await subscribeToProject(socket, testIds.projectId);
+    const subscription = await subscribeToProject(socket, testIds.projectId);
+    assert.equal(subscription.subscribed, testIds.projectId);
 
     const taskEventPromise = waitForTaskEvent(socket);
 
@@ -101,5 +114,29 @@ describe("realtime flow", () => {
       taskId,
       action: "updated",
     });
+  });
+
+  it("rejects subscriptions outside the authenticated user's organization", async () => {
+    const context = await createTestApp();
+    appsToClose.add(context);
+
+    const request = supertest(context.app.getHttpServer());
+    const loginResponse = await request.post("/api/auth/login").send({
+      email: "outsider@tracker.local",
+      password: "changeme123",
+    });
+    const accessToken = loginResponse.body.tokens.accessToken as string;
+    const socket = io(`${context.baseUrl}/tasks`, {
+      auth: { token: accessToken },
+      transports: ["websocket"],
+    });
+
+    socketsToClose.add(socket);
+    await waitForConnection(socket);
+
+    const subscription = await waitForSubscriptionError(socket, testIds.projectId);
+
+    assert.equal(subscription.status, "error");
+    assert.match(subscription.message ?? "", /access denied/i);
   });
 });
