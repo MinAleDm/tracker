@@ -1,66 +1,75 @@
-# Kubernetes
+# Kubernetes baseline
 
-Базовые манифесты лежат в [`k8s/base`](./base) и повторяют docker-compose контур:
-
-- PostgreSQL 16
-- Redis 7
-- API на `3001`
-- Web на `3000`
-- Nginx reverse proxy на `80`
+`k8s/base` — локальный/reference контур Tracker: PostgreSQL 16, Redis 7, API, Web и unprivileged Nginx.
+Он демонстрирует probes, resource limits, NetworkPolicy и restricted workload security context, но не
+является production-ready платформой.
 
 ## Локальный запуск
-
-Соберите образы с именами, которые указаны в base-манифестах:
 
 ```bash
 docker build -f apps/api/Dockerfile -t tracker-api:latest .
 docker build -f apps/web/Dockerfile -t tracker-web:latest .
 ```
 
-Для `kind` загрузите локальные образы в кластер:
+Для kind:
 
 ```bash
 kind load docker-image tracker-api:latest
 kind load docker-image tracker-web:latest
 ```
 
-Примените манифесты:
+Создайте локальный secret-файл из шаблона, заполните четыре независимых сильных значения и не
+добавляйте файл в Git:
+
+```bash
+cp k8s/secret.env.example k8s/secret.env
+kubectl create namespace tracker --dry-run=client -o yaml | kubectl apply -f -
+kubectl -n tracker create secret generic tracker-secret \
+  --from-env-file=k8s/secret.env \
+  --dry-run=client -o yaml | kubectl apply -f -
+```
+
+Примените base и откройте edge service:
 
 ```bash
 kubectl apply -k k8s/base
-```
-
-Откройте приложение через port-forward:
-
-```bash
 kubectl -n tracker port-forward svc/nginx 8080:80
 ```
 
-После этого web доступен на `http://localhost:8080`, API на `http://localhost:8080/api`, Swagger на `http://localhost:8080/api/docs`.
+- Web: `http://localhost:8080`;
+- API: `http://localhost:8080/api/v1`;
+- Swagger: `http://localhost:8080/api/docs`;
+- Readiness: `http://localhost:8080/api/health/ready`.
 
-## Переопределение образов
-
-Для registry-образов используйте overlay или временно отредактируйте kustomization:
+Проверка рендера без применения:
 
 ```bash
-cd k8s/base
-kustomize edit set image tracker-api:latest=registry.example.com/tracker/api:TAG
-kustomize edit set image tracker-web:latest=registry.example.com/tracker/web:TAG
+kubectl kustomize k8s/base >/tmp/tracker-k8s.yaml
 ```
 
-## Секреты
+## Security baseline
 
-[`secret.yaml`](./base/secret.yaml) содержит dev-значения. Перед деплоем в общий или production-кластер замените:
+- Service account tokens не монтируются.
+- API, Web и Nginx запускаются non-root, без capabilities/privilege escalation, с read-only root fs.
+- PostgreSQL и Redis доступны только разрешённым pods через NetworkPolicy.
+- Nginx ограничивает request body, auth/API rate и число Socket.IO connections.
+- Secret manifest отсутствует в Git; `k8s/secret.env` игнорируется.
+- Demo seed и Swagger выключены в base config.
 
-- `POSTGRES_PASSWORD`
-- `JWT_ACCESS_SECRET`
-- `JWT_REFRESH_SECRET`
-- `DEMO_USER_PASSWORD`
+## Production overlay
 
-Можно заменить файл на `kubectl create secret generic tracker-secret ... --dry-run=client -o yaml` или подключить внешний secret manager.
+Production overlay должен заменить локальные data services и секреты:
 
-## Важные ограничения
+1. immutable registry tags/digests вместо `latest`;
+2. TLS ingress и корректные public CORS/socket URLs;
+3. External Secrets/Vault/KMS и credential rotation;
+4. managed PostgreSQL/Redis с TLS, HA, backup и restore drills;
+5. отдельный single-run `prisma migrate deploy` job;
+6. replicas/HPA/PDB и distributed rate limiting;
+7. centralized logs, metrics, traces, alerts и SLO;
+8. namespace policy под возможности конкретного cluster CNI.
 
-- API deployment оставлен в `replicas: 1`, потому что текущий entrypoint выполняет `prisma db push` и seed при старте контейнера.
-- `NEXT_PUBLIC_*` значения для Next.js в основном вшиваются на этапе сборки образа. Для другого публичного URL пересоберите `tracker-web` с нужными build args.
+`NEXT_PUBLIC_*` встраиваются при сборке Web image. Для другого публичного URL пересоберите образ с
+соответствующими build args.
 
+Эксплуатационные процедуры: [`../docs/operations/runbook.md`](../docs/operations/runbook.md).

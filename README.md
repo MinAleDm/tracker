@@ -1,61 +1,41 @@
-# Tracker
+<div align="center">
+  <img src="./apps/web/public/logo.png" width="104" alt="Tracker logo" />
+  <h1>Tracker</h1>
+  <p><strong>Командный task tracker с организациями, ролями, realtime-доской и безопасной browser session.</strong></p>
 
-[![CI](https://github.com/minkinad/tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/minkinad/tracker/actions/workflows/ci.yml)
-[![License](https://img.shields.io/github/license/minkinad/tracker?color=000000)](https://github.com/minkinad/tracker/blob/main/LICENSE)
-[![Node](https://img.shields.io/badge/node-%3E%3D20.11.1-000000?logo=node.js&logoColor=white)](https://nodejs.org/)
-[![pnpm](https://img.shields.io/badge/pnpm-9.15.4-000000?logo=pnpm&logoColor=white)](https://pnpm.io/)
+  [![CI](https://github.com/minkinad/tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/minkinad/tracker/actions/workflows/ci.yml)
+  [![CodeQL](https://github.com/minkinad/tracker/actions/workflows/codeql.yml/badge.svg)](https://github.com/minkinad/tracker/actions/workflows/codeql.yml)
+  [![Node.js](https://img.shields.io/badge/Node.js-22.13%2B-111827?logo=node.js)](https://nodejs.org/)
+  [![pnpm](https://img.shields.io/badge/pnpm-9.15.4-111827?logo=pnpm)](https://pnpm.io/)
+  [![License](https://img.shields.io/github/license/minkinad/tracker?color=111827)](./LICENSE)
 
-Монорепозиторий task tracker: `Next.js`-frontend, `NestJS` API, `PostgreSQL` + `Prisma`, `Redis`, `Socket.IO`, `Docker Compose` и `Nginx`.
+  [Возможности](#возможности) · [Быстрый старт](#быстрый-старт) · [Архитектура](#архитектура) · [Безопасность](#безопасность) · [FAQ](#faq)
+</div>
 
-Проект уже содержит рабочий контур для командной работы:
+---
 
-- JWT-аутентификация с refresh-token rotation
-- организации, участники, роли и проекты
-- CRUD задач, комментарии и история активности
-- список задач с фильтрами и kanban-доска
-- realtime-инвалидация задач через Socket.IO
-- отдельные экраны обзора, задач, досок, аналитики и карточки задачи
+Tracker — full-stack монорепозиторий для управления проектами и задачами. Он сочетает быстрый
+Next.js-интерфейс, versioned NestJS API, PostgreSQL/Prisma, Redis cache и Socket.IO. Проект рассчитан
+на развитие как модульный монолит: границы домена явные, а frontend и backend можно развёртывать
+независимо.
 
-## Состав репозитория
+> [!IMPORTANT]
+> Репозиторий предоставляет укреплённый baseline, но не заменяет production-платформу. Перед публичным
+> запуском нужны TLS, внешний secret manager, managed data services, backup/restore и observability.
+> Актуальная готовность описана в [`docs/PROJECT_STATUS.md`](./docs/PROJECT_STATUS.md).
 
-```text
-apps/
-  api/     NestJS API
-  web/     Next.js App Router frontend
-packages/
-  db/      Prisma schema, generate, seed
-  types/   общие DTO и контракты
-  ui/      базовые UI-компоненты
-```
+## Возможности
 
-## Текущий стек
-
-- Node.js `>=20.11.1`
-- pnpm `9.15.4`
-- Frontend: `Next.js 15`, `React 19`, `React Query 5`, `Zustand`, `@dnd-kit`, `framer-motion`
-- Backend: `NestJS 11`, `Socket.IO 4`
-- Data: `PostgreSQL 16`, `Prisma 6`, `Redis 7`
-- Infra: `Docker Compose`, `Nginx`
-
-## Что есть в приложении
-
-### Frontend
-
-- `/` — главная сводка проекта
-- `/pages/my` — стартовая страница рабочего пространства
-- `/tasks` — список задач с фильтрами и scope-переключателями
-- `/tasks/[taskId]` — детальная карточка задачи
-- `/boards` — kanban-доска
-- `/analytics` — аналитика по текущему проекту
-
-Рабочее пространство построено вокруг `WorkspacePage`: он решает авторизацию, гидрацию client state, загрузку организации, проекта, пользователей и задач, а также realtime-подписку.
-
-Актуальный архитектурный и UX-срез фронтенда, сравнение с Linear, Plane и Jira, а также рекомендуемый roadmap находятся в [`docs/frontend-audit.md`](./docs/frontend-audit.md).
-
-Быстрые действия:
-
-- `C` — перейти к созданию задачи
-- `⌘K` / `Ctrl+K` — открыть command palette
+- организации, membership-роли `OWNER` / `ADMIN` / `MEMBER` и проекты;
+- задачи с приоритетами, статусами, исполнителями, фильтрами и сохранёнными представлениями;
+- list, kanban, overview, analytics и детальная карточка задачи;
+- комментарии и история активности;
+- realtime-инвалидация данных через защищённые project rooms Socket.IO;
+- приглашения с одноразовым токеном и сроком действия;
+- versioned HTTP contract `/api/v1` и Swagger;
+- liveness/readiness endpoints для контейнерной оркестрации;
+- Docker Compose и Kubernetes base с restricted security context;
+- CI: lint, typecheck, 17 API tests, build, dependency audit, CodeQL и Dependency Review.
 
 ## Скриншоты
 
@@ -71,266 +51,282 @@ packages/
 | --- | --- |
 | ![Канбан-доска](./docs/screenshots/05-boards.png) | ![Аналитика проекта](./docs/screenshots/06-analytics.png) |
 
-| Карточка задачи |
-| --- |
-| ![Карточка задачи](./docs/screenshots/07-task-detail.png) |
+<details>
+<summary><strong>Карточка задачи</strong></summary>
 
-### Backend
+![Карточка задачи](./docs/screenshots/07-task-detail.png)
 
-API поднимается с префиксом `/api`, Swagger доступен по `/api/docs`.
+</details>
 
-Основные модули:
+## Архитектура
 
-- `auth` — login, refresh, `me`
-- `organizations` — список доступных организаций
-- `projects` — список и создание проектов
-- `tasks` — список, создание, обновление, комментарии, активность
-- `realtime` — namespace `/tasks` и рассылка `task:changed`
-
-Redis используется как необязательный кеш списка задач. Если Redis недоступен, API продолжает работать без падения.
-
-## Быстрый старт без Docker
-
-### 1. Установить зависимости
-
-```bash
-pnpm install
+```mermaid
+flowchart LR
+  Browser[Next.js + React Query] -->|HTTPS /api/v1| Edge[Nginx / Ingress]
+  Browser -->|WSS /tasks| Edge
+  Edge --> Web[Web]
+  Edge --> API[NestJS API]
+  API --> DB[(PostgreSQL)]
+  API -. optional cache .-> Redis[(Redis)]
+  API --> Rooms[Socket.IO project rooms]
+  Rooms --> Browser
 ```
 
-### 2. Подготовить env-файлы
+```text
+apps/
+  api/                  NestJS modular monolith
+  web/                  Next.js App Router client
+packages/
+  db/                   Prisma schema, migrations and explicit seed
+  types/                shared transport contracts
+  ui/                   reusable UI primitives
+docs/
+  adr/                  accepted architecture decisions
+  operations/           deployment and incident runbook
+k8s/base/               local/reference Kubernetes manifests
+```
 
-Для локальной разработки нужны env-файлы приложений:
+PostgreSQL — единственный источник истины. Redis ускоряет списки задач, но не участвует в security
+decisions: при его отказе API продолжает работать без кеша. Realtime передаёт только сигнал об изменении,
+после которого клиент перечитывает каноническое состояние по HTTP.
+
+Подробности: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) и
+[`docs/adr`](./docs/adr).
+
+## Безопасность
+
+Ключевые гарантии текущего baseline:
+
+- API закрыт глобальным JWT guard; публичные routes помечаются явно;
+- доступ к организации/проекту выводится из authenticated user и membership в базе;
+- access token хранится только в памяти browser tab;
+- refresh token находится в scoped `HttpOnly`, `SameSite=Strict` cookie, хранится как hash и ротируется;
+- reuse отозванного refresh token отзывает всю token family;
+- WebSocket проверяет token claims, активность пользователя и project access до room join;
+- env validation запрещает короткие, placeholder и одинаковые JWT secrets, wildcard credentialed CORS;
+- production runtime выполняет `prisma migrate deploy`, а demo seed выключен по умолчанию;
+- сервисы запускаются без root, с read-only filesystem/capability restrictions;
+- plaintext Kubernetes Secret не хранится в репозитории;
+- high-severity dependency audit на 2026-08-21: 0 известных уязвимостей.
+
+Не публикуйте уязвимости в issues. Используйте процедуру из [`SECURITY.md`](./SECURITY.md). Полная модель
+угроз и residual risks: [`docs/THREAT_MODEL.md`](./docs/THREAT_MODEL.md).
+
+## Технологии
+
+| Область | Стек |
+| --- | --- |
+| Web | Next.js 15, React 19, React Query 5, Zustand 5, dnd-kit |
+| API | NestJS 11, Passport JWT, Socket.IO 4, class-validator |
+| Data | PostgreSQL 16, Prisma 6, Redis 7 |
+| Tooling | TypeScript 5.9, ESLint 8, Node test runner, pnpm 9 |
+| Delivery | Docker Compose, unprivileged Nginx, Kustomize, GitHub Actions |
+
+## Быстрый старт
+
+### Требования
+
+- Node.js `>=22.13.1`;
+- Corepack и pnpm `9.15.4`;
+- Docker + Compose для рекомендуемого локального контура.
+
+### Docker Compose
 
 ```bash
+git clone https://github.com/minkinad/tracker.git
+cd tracker
+cp .env.example .env
+```
+
+Сгенерируйте четыре независимых значения (`openssl rand -base64 48`) и заполните в `.env`:
+
+- `POSTGRES_PASSWORD`;
+- `REDIS_PASSWORD`;
+- `JWT_ACCESS_SECRET`;
+- `JWT_REFRESH_SECRET`.
+
+Для демонстрационных данных дополнительно задайте сильный `DEMO_USER_PASSWORD` и только локально
+переключите `SEED_DEMO_DATA=true`. Затем:
+
+```bash
+docker compose up --build -d
+docker compose ps
+```
+
+| Сервис | Адрес |
+| --- | --- |
+| Web через Nginx | `http://localhost:8080` |
+| API v1 | `http://localhost:8080/api/v1` |
+| Swagger (если включён) | `http://localhost:8080/api/docs` |
+| API readiness | `http://localhost:8080/api/health/ready` |
+
+Прямые порты PostgreSQL, Redis, API и Web привязаны к loopback для локальной диагностики. Публичной
+точкой входа считается Nginx на `8080`.
+
+Остановить окружение:
+
+```bash
+docker compose down
+```
+
+Команда `pnpm docker:down` удаляет volumes (`down -v`) и предназначена только для осознанного сброса
+локальных данных.
+
+### Запуск приложений без Docker
+
+Поднимите PostgreSQL и Redis, затем:
+
+```bash
+corepack enable
+pnpm install --frozen-lockfile
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env.local
-```
-
-Типовые значения уже есть в шаблонах:
-
-- `apps/api/.env`
-  - `PORT=3001`
-  - `DATABASE_URL=postgresql://tracker:tracker@localhost:5432/tracker?schema=public`
-  - `REDIS_URL=redis://localhost:6379`
-  - `JWT_ACCESS_SECRET=replace-me-access`
-  - `JWT_REFRESH_SECRET=replace-me-refresh`
-  - `JWT_ACCESS_TTL=15m`
-  - `JWT_REFRESH_TTL=7d`
-  - `CORS_ORIGIN=http://localhost:3000`
-- `apps/web/.env.local`
-  - `NEXT_PUBLIC_API_URL=http://localhost:3001/api`
-  - `NEXT_PUBLIC_SOCKET_URL=http://localhost:3001`
-
-### 3. Поднять PostgreSQL и Redis
-
-```bash
-docker compose up -d postgres redis
-```
-
-### 4. Подготовить Prisma и seed-данные
-
-```bash
 pnpm db:generate
 pnpm db:migrate
-pnpm db:seed
-```
-
-### 5. Запустить frontend и API
-
-```bash
 pnpm dev
 ```
 
-Локальные адреса:
-
-- Web: `http://localhost:3000`
-- API: `http://localhost:3001/api`
-- Swagger: `http://localhost:3001/api/docs`
-- Socket.IO base URL: `http://localhost:3001`
-
-Демо-доступ после `seed`:
-
-- Email: `owner@tracker.local`
-- Password: `changeme123`
-
-## Быстрый старт через Docker Compose
-
-Для compose используется корневой `.env`:
+Перед стартом заполните сильные и разные JWT secrets, корректные `DATABASE_URL`/`REDIS_URL`. Seed
+выполняется отдельно и только с заданным `DEMO_USER_PASSWORD`:
 
 ```bash
-cp .env.example .env
-docker compose up --build -d
-```
-
-По умолчанию compose поднимает:
-
-- `postgres` на `5432`
-- `redis` на `6379`
-- `api` на `3001`
-- `web` на `3000`
-- `nginx` на `8080`
-
-Публичные адреса:
-
-- Web: `http://localhost:8080`
-- API: `http://localhost:8080/api`
-- Swagger: `http://localhost:8080/api/docs`
-- Socket.IO: `http://localhost:8080/socket.io`
-
-При старте API-контейнер:
-
-1. ждёт доступности PostgreSQL
-2. выполняет `prisma db push`
-3. запускает `seed`
-4. стартует NestJS API
-
-Остановить и удалить volumes:
-
-```bash
-docker compose down -v
-```
-
-## Kubernetes
-
-Базовые манифесты находятся в [`k8s/base`](./k8s/base), инструкция по локальному запуску — в [`k8s/README.md`](./k8s/README.md).
-
-Короткий путь для локального кластера:
-
-```bash
-docker build -f apps/api/Dockerfile -t tracker-api:latest .
-docker build -f apps/web/Dockerfile -t tracker-web:latest .
-kubectl apply -k k8s/base
-kubectl -n tracker port-forward svc/nginx 8080:80
-```
-
-Для `kind` перед `kubectl apply` загрузите образы в кластер:
-
-```bash
-kind load docker-image tracker-api:latest
-kind load docker-image tracker-web:latest
-```
-
-## Переменные окружения
-
-### Корень репозитория
-
-Файл `.env` нужен для `docker compose` и управляет портами, кредами PostgreSQL, JWT-секретами и demo-user.
-
-Шаблон: [`.env.example`](./.env.example)
-
-### API
-
-Шаблон: [`apps/api/.env.example`](./apps/api/.env.example)
-
-Ключевые переменные:
-
-- `PORT`
-- `DATABASE_URL`
-- `REDIS_URL`
-- `JWT_ACCESS_SECRET`
-- `JWT_REFRESH_SECRET`
-- `JWT_ACCESS_TTL`
-- `JWT_REFRESH_TTL`
-- `CORS_ORIGIN`
-- `DEMO_USER_EMAIL`
-- `DEMO_USER_PASSWORD`
-
-### Web
-
-Шаблон: [`apps/web/.env.example`](./apps/web/.env.example)
-
-Ключевые переменные:
-
-- `NEXT_PUBLIC_API_URL`
-- `NEXT_PUBLIC_SOCKET_URL`
-
-## Команды из корня
-
-```bash
-pnpm dev
-pnpm build
-pnpm typecheck
-pnpm test
-pnpm db:generate
-pnpm db:migrate
 pnpm db:seed
-pnpm docker:up
-pnpm docker:down
 ```
 
-Что важно:
+Локально Web доступен на `http://localhost:3000`, API — на `http://localhost:3001/api/v1`, Swagger —
+на `http://localhost:3001/api/docs`.
 
-- `pnpm build` и `pnpm typecheck` сначала вызывают `db:generate`
-- `pnpm test` сейчас запускает тесты `@tracker/api`
-- `pnpm dev` параллельно поднимает `@tracker/api` и `@tracker/web`
+## Конфигурация
 
-## Полезные команды по пакетам
+| Переменная | Назначение | Production |
+| --- | --- | --- |
+| `DATABASE_URL` | PostgreSQL connection string | secret manager |
+| `REDIS_URL` | Redis connection string | private network + auth |
+| `JWT_ACCESS_SECRET` | Подпись короткого access JWT | уникальный secret, 32+ chars |
+| `JWT_REFRESH_SECRET` | Подпись refresh JWT | другой уникальный secret |
+| `JWT_ISSUER`, `JWT_AUDIENCE` | Ограничение token context | явные значения |
+| `CORS_ORIGIN` | allowlist browser origins | только HTTPS origins |
+| `COOKIE_SECURE` | Secure refresh cookie | `true` |
+| `SWAGGER_ENABLED` | Swagger UI | обычно `false` |
+| `TRUST_PROXY_HOPS` | Число доверенных proxy hops | по topology |
+| `SEED_DEMO_DATA` | Автоматический demo seed | `false` |
+| `NEXT_PUBLIC_API_URL` | Browser-visible API base | `/api/v1` |
+| `NEXT_PUBLIC_SOCKET_URL` | Browser-visible Socket.IO base | публичный HTTPS origin |
+
+Шаблоны: [Compose env](./.env.example), [API env](./apps/api/.env.example),
+[Web env](./apps/web/.env.example), [Kubernetes secret env](./k8s/secret.env.example).
+
+## API и realtime
+
+- Прикладной HTTP contract: `/api/v1`.
+- Служебные endpoints: `/api/health/live`, `/api/health/ready`.
+- Swagger: `/api/docs`, только при `SWAGGER_ENABLED=true`.
+- Socket.IO namespace: `/tasks`.
+- Subscription event: `project:subscribe`; server event: `task:changed`.
+
+Основные ресурсы: auth, organizations, invitations, projects, users и tasks. Полное описание модулей —
+в [`apps/api/README.md`](./apps/api/README.md).
+
+## Команды
 
 ```bash
-pnpm --filter @tracker/api dev
-pnpm --filter @tracker/api test
-pnpm --filter @tracker/web dev
-pnpm --filter @tracker/web build
-pnpm --filter @tracker/db prisma:generate
-pnpm --filter @tracker/db prisma:migrate
-pnpm --filter @tracker/db prisma:seed
+pnpm dev                       # API + Web в watch mode
+pnpm lint                      # API + Web ESLint
+pnpm typecheck                 # Prisma generate + workspace typecheck
+pnpm test                      # 17 API tests
+pnpm build                     # production builds
+pnpm audit --audit-level high  # dependency vulnerabilities
+pnpm db:generate               # Prisma client
+pnpm db:migrate                # development migration flow
+pnpm db:seed                   # explicit demo seed
 ```
 
-## Ключевые файлы
-
-- [`apps/api/src/main.ts`](./apps/api/src/main.ts) — bootstrap API, CORS, Swagger, `/api`
-- [`apps/api/src/app.module.ts`](./apps/api/src/app.module.ts) — сборка модулей и middleware
-- [`apps/api/src/modules/tasks/tasks.service.ts`](./apps/api/src/modules/tasks/tasks.service.ts) — логика задач, кеш и доменные события
-- [`apps/api/src/modules/realtime/realtime.gateway.ts`](./apps/api/src/modules/realtime/realtime.gateway.ts) — Socket.IO gateway
-- [`packages/db/prisma/schema.prisma`](./packages/db/prisma/schema.prisma) — схема БД
-- [`packages/db/prisma/seed.ts`](./packages/db/prisma/seed.ts) — демо-данные
-- [`apps/web/src/widgets/workspace-shell/ui/workspace-shell.tsx`](./apps/web/src/widgets/workspace-shell/ui/workspace-shell.tsx) — shell рабочего пространства
-- [`apps/web/src/lib/api-client.ts`](./apps/web/src/lib/api-client.ts) — auth-aware HTTP-клиент
-- [`apps/web/src/lib/use-task-realtime.ts`](./apps/web/src/lib/use-task-realtime.ts) — realtime-подписка
-- [`k8s/base/kustomization.yaml`](./k8s/base/kustomization.yaml) — Kubernetes base-манифесты
-- [`CHANGELOG.md`](./CHANGELOG.md) — журнал изменений
-
-## Проверки
-
-Основные проверки:
+Полная проверка deployment manifests:
 
 ```bash
-pnpm typecheck
-pnpm test
-pnpm build
+docker compose config --quiet
+kubectl kustomize k8s/base >/dev/null
 ```
 
-Smoke-check после Docker:
+## Kubernetes и production
 
-```bash
-curl -i http://localhost:8080/
-curl -i -X POST http://localhost:8080/api/auth/login \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"owner@tracker.local","password":"changeme123"}'
-```
+[`k8s/base`](./k8s/base) — reference/local baseline, а не готовая production platform. Инструкция:
+[`k8s/README.md`](./k8s/README.md).
 
-## Деплой
+Перед production deployment необходимы:
 
-### Один сервер
+1. TLS ingress и закрытые data-plane endpoints.
+2. External Secrets/Vault и ротация credentials.
+3. Managed PostgreSQL/Redis, encrypted backup и проверенный restore.
+4. Single-run migration job, immutable image tags и запрет demo seed.
+5. Distributed rate limit, metrics/traces, alerting и SLO.
+6. Branch ruleset с required checks и CODEOWNERS review.
 
-1. Подготовить Linux-хост с Docker и Docker Compose.
-2. Создать production `.env`.
-3. Задать сильные `JWT_ACCESS_SECRET` и `JWT_REFRESH_SECRET`.
-4. Поднять `docker compose up -d --build`.
-5. Поставить TLS перед `nginx`.
+Пошаговые действия и инциденты: [`docs/operations/runbook.md`](./docs/operations/runbook.md).
 
-### Раздельные сервисы
+## FAQ
 
-- вынести PostgreSQL и Redis во внешние managed-сервисы
-- деплоить `apps/api` и `apps/web` отдельно
-- маршрутизировать `/api` и `/socket.io` в API
-- маршрутизировать `/` в Next.js frontend
-- прогонять Prisma-операции на релизе отдельно от runtime
+<details>
+<summary><strong>Почему не микросервисы?</strong></summary>
 
-## Дополнительно
+Домены тесно связаны общей транзакционной моделью, а независимый scale profile пока не подтверждён.
+Модульный монолит даёт явные границы без сетевой и операционной сложности. Решение записано в
+[`ADR-0001`](./docs/adr/0001-modular-monolith.md).
 
-- README приложений:
-  - [`apps/api/README.md`](./apps/api/README.md)
-  - [`apps/web/README.md`](./apps/web/README.md)
-- Присутствуют комментарии в коде.
-- Frontend работает через контракты из `packages/types`.
+</details>
+
+<details>
+<summary><strong>Почему после обновления страницы выполняется refresh?</strong></summary>
+
+Access token намеренно не сохраняется в browser storage. Refresh cookie недоступна JavaScript, поэтому
+клиент получает новый короткий access token при bootstrap. См. [`ADR-0002`](./docs/adr/0002-browser-session-model.md).
+
+</details>
+
+<details>
+<summary><strong>Можно ли работать без Redis?</strong></summary>
+
+Да. Redis кеширует списки задач и ускоряет чтение, но PostgreSQL остаётся источником истины. Readiness
+считает Redis частью текущего deployment contract, поэтому degraded production mode нужно оформлять
+отдельным архитектурным решением.
+
+</details>
+
+<details>
+<summary><strong>Почему seed не запускается автоматически?</strong></summary>
+
+Безусловный seed в runtime создаёт предсказуемые учётные записи и смешивает deployment с тестовыми
+данными. Он включается только явно и требует пароль не короче 12 символов.
+
+</details>
+
+<details>
+<summary><strong>Можно ли считать Kubernetes base production-ready?</strong></summary>
+
+Нет. Он демонстрирует workload hardening и network boundaries, но содержит однорепличные data services
+без production backup, autoscaling, external secrets и high availability.
+
+</details>
+
+## Документация
+
+- [Архитектура](./docs/ARCHITECTURE.md)
+- [Состояние проекта](./docs/PROJECT_STATUS.md)
+- [Threat model](./docs/THREAT_MODEL.md)
+- [Operations runbook](./docs/operations/runbook.md)
+- [Frontend audit](./docs/frontend-audit.md)
+- [Security policy](./SECURITY.md)
+- [Contributing](./CONTRIBUTING.md)
+- [Changelog](./CHANGELOG.md)
+- [API guide](./apps/api/README.md)
+- [Web guide](./apps/web/README.md)
+
+## Участие и поддержка
+
+Перед pull request прочитайте [`CONTRIBUTING.md`](./CONTRIBUTING.md) и локальные `AGENTS.md`. Вопросы и
+каналы поддержки перечислены в [`SUPPORT.md`](./SUPPORT.md). Участие регулируется
+[`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md).
+
+## Лицензия
+
+Проект распространяется по лицензии [MIT](./LICENSE).
