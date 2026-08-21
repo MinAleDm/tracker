@@ -66,7 +66,7 @@ describe("realtime flow", () => {
 
     const request = supertest(context.app.getHttpServer());
 
-    const loginResponse = await request.post("/api/auth/login").send({
+    const loginResponse = await request.post("/api/v1/auth/login").send({
       email: "owner@tracker.local",
       password: "changeme123",
     });
@@ -74,7 +74,7 @@ describe("realtime flow", () => {
     const accessToken = loginResponse.body.tokens.accessToken as string;
 
     const createResponse = await request
-      .post(`/api/projects/${testIds.projectId}/tasks`)
+      .post(`/api/v1/projects/${testIds.projectId}/tasks`)
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         title: "Realtime coverage",
@@ -99,7 +99,7 @@ describe("realtime flow", () => {
     const taskEventPromise = waitForTaskEvent(socket);
 
     const updateResponse = await request
-      .patch(`/api/tasks/${taskId}`)
+      .patch(`/api/v1/tasks/${taskId}`)
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         status: "DONE",
@@ -121,7 +121,7 @@ describe("realtime flow", () => {
     appsToClose.add(context);
 
     const request = supertest(context.app.getHttpServer());
-    const loginResponse = await request.post("/api/auth/login").send({
+    const loginResponse = await request.post("/api/v1/auth/login").send({
       email: "outsider@tracker.local",
       password: "changeme123",
     });

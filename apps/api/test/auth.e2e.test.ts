@@ -21,7 +21,7 @@ describe("auth flow", () => {
     const request = supertest(context.app.getHttpServer());
     const agent = supertest.agent(context.app.getHttpServer());
 
-    const loginResponse = await agent.post("/api/auth/login").send({
+    const loginResponse = await agent.post("/api/v1/auth/login").send({
       email: "owner@tracker.local",
       password: "changeme123",
     });
@@ -34,23 +34,23 @@ describe("auth flow", () => {
     const firstCookie = (loginResponse.headers["set-cookie"] as unknown as string[])[0]?.split(";", 1)[0];
     assert.ok(firstCookie?.startsWith("tracker_refresh="));
 
-    const refreshResponse = await agent.post("/api/auth/refresh");
+    const refreshResponse = await agent.post("/api/v1/auth/refresh");
 
     assert.equal(refreshResponse.status, 200);
     assert.equal(refreshResponse.body.refreshToken, undefined);
     assert.ok(refreshResponse.body.accessToken);
 
     const revokedRefreshResponse = await request
-      .post("/api/auth/refresh")
+      .post("/api/v1/auth/refresh")
       .set("Cookie", firstCookie!);
 
     assert.equal(revokedRefreshResponse.status, 401);
 
-    const revokedFamilyResponse = await agent.post("/api/auth/refresh");
+    const revokedFamilyResponse = await agent.post("/api/v1/auth/refresh");
     assert.equal(revokedFamilyResponse.status, 401);
 
     const meResponse = await request
-      .get("/api/auth/me")
+      .get("/api/v1/auth/me")
       .set("Authorization", `Bearer ${refreshResponse.body.accessToken as string}`);
 
     assert.equal(meResponse.status, 200);
@@ -61,7 +61,7 @@ describe("auth flow", () => {
     const context = await createTestApp();
     appsToClose.add(context);
 
-    const response = await supertest(context.app.getHttpServer()).get("/api/organizations");
+    const response = await supertest(context.app.getHttpServer()).get("/api/v1/organizations");
 
     assert.equal(response.status, 401);
   });
@@ -72,11 +72,11 @@ describe("auth flow", () => {
     const request = supertest(context.app.getHttpServer());
 
     for (let attempt = 0; attempt < 10; attempt += 1) {
-      const response = await request.post("/api/auth/login").send({});
+      const response = await request.post("/api/v1/auth/login").send({});
       assert.equal(response.status, 400);
     }
 
-    const limitedResponse = await request.post("/api/auth/login").send({});
+    const limitedResponse = await request.post("/api/v1/auth/login").send({});
     assert.equal(limitedResponse.status, 429);
     assert.ok(limitedResponse.headers["retry-after"]);
   });

@@ -20,7 +20,7 @@ describe("task flow", () => {
 
     const request = supertest(context.app.getHttpServer());
 
-    const loginResponse = await request.post("/api/auth/login").send({
+    const loginResponse = await request.post("/api/v1/auth/login").send({
       email: "owner@tracker.local",
       password: "changeme123",
     });
@@ -28,7 +28,7 @@ describe("task flow", () => {
     const accessToken = loginResponse.body.tokens.accessToken as string;
 
     const createResponse = await request
-      .post(`/api/projects/${testIds.projectId}/tasks`)
+      .post(`/api/v1/projects/${testIds.projectId}/tasks`)
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         title: "Stabilize task workflow",
@@ -44,7 +44,7 @@ describe("task flow", () => {
     const taskId = createResponse.body.id as string;
 
     const listResponse = await request
-      .get(`/api/projects/${testIds.projectId}/tasks`)
+      .get(`/api/v1/projects/${testIds.projectId}/tasks`)
       .set("Authorization", `Bearer ${accessToken}`);
 
     assert.equal(listResponse.status, 200);
@@ -52,7 +52,7 @@ describe("task flow", () => {
     assert.equal(listResponse.body.meta.total, 1);
 
     const detailsResponse = await request
-      .get(`/api/tasks/${taskId}`)
+      .get(`/api/v1/tasks/${taskId}`)
       .set("Authorization", `Bearer ${accessToken}`);
 
     assert.equal(detailsResponse.status, 200);
@@ -60,7 +60,7 @@ describe("task flow", () => {
     assert.equal(detailsResponse.body.activity.length, 1);
 
     const updateResponse = await request
-      .patch(`/api/tasks/${taskId}`)
+      .patch(`/api/v1/tasks/${taskId}`)
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         title: "Stabilize task workflow end-to-end",
@@ -74,7 +74,7 @@ describe("task flow", () => {
     assert.equal(updateResponse.body.priority, "URGENT");
 
     const updatedListResponse = await request
-      .get(`/api/projects/${testIds.projectId}/tasks`)
+      .get(`/api/v1/projects/${testIds.projectId}/tasks`)
       .set("Authorization", `Bearer ${accessToken}`);
 
     assert.equal(updatedListResponse.status, 200);
@@ -82,7 +82,7 @@ describe("task flow", () => {
     assert.equal(updatedListResponse.body.data[0].priority, "URGENT");
 
     const clearDescriptionResponse = await request
-      .patch(`/api/tasks/${taskId}`)
+      .patch(`/api/v1/tasks/${taskId}`)
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         description: "",
@@ -92,7 +92,7 @@ describe("task flow", () => {
     assert.equal(clearDescriptionResponse.body.description, "");
 
     const commentResponse = await request
-      .post(`/api/tasks/${taskId}/comments`)
+      .post(`/api/v1/tasks/${taskId}/comments`)
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         body: "This task flow is now covered by tests.",
@@ -102,7 +102,7 @@ describe("task flow", () => {
     assert.equal(commentResponse.body.body, "This task flow is now covered by tests.");
 
     const refreshedDetails = await request
-      .get(`/api/tasks/${taskId}`)
+      .get(`/api/v1/tasks/${taskId}`)
       .set("Authorization", `Bearer ${accessToken}`);
 
     assert.equal(refreshedDetails.status, 200);
@@ -132,7 +132,7 @@ describe("task flow", () => {
 
     const request = supertest(context.app.getHttpServer());
 
-    const loginResponse = await request.post("/api/auth/login").send({
+    const loginResponse = await request.post("/api/v1/auth/login").send({
       email: "owner@tracker.local",
       password: "changeme123",
     });
@@ -140,7 +140,7 @@ describe("task flow", () => {
     const accessToken = loginResponse.body.tokens.accessToken as string;
 
     const rejectedCreateResponse = await request
-      .post(`/api/projects/${testIds.projectId}/tasks`)
+      .post(`/api/v1/projects/${testIds.projectId}/tasks`)
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         title: "Reject invalid assignee",
@@ -151,7 +151,7 @@ describe("task flow", () => {
     assert.match(rejectedCreateResponse.body.message, /Assignee/);
 
     const createResponse = await request
-      .post(`/api/projects/${testIds.projectId}/tasks`)
+      .post(`/api/v1/projects/${testIds.projectId}/tasks`)
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         title: "Keep valid assignee",
@@ -163,7 +163,7 @@ describe("task flow", () => {
     const taskId = createResponse.body.id as string;
 
     const rejectedUpdateResponse = await request
-      .patch(`/api/tasks/${taskId}`)
+      .patch(`/api/v1/tasks/${taskId}`)
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         assigneeId: testIds.outsiderId,
@@ -173,7 +173,7 @@ describe("task flow", () => {
     assert.match(rejectedUpdateResponse.body.message, /Assignee/);
 
     const detailsResponse = await request
-      .get(`/api/tasks/${taskId}`)
+      .get(`/api/v1/tasks/${taskId}`)
       .set("Authorization", `Bearer ${accessToken}`);
 
     assert.equal(detailsResponse.status, 200);
@@ -186,7 +186,7 @@ describe("task flow", () => {
 
     const request = supertest(context.app.getHttpServer());
 
-    const loginResponse = await request.post("/api/auth/login").send({
+    const loginResponse = await request.post("/api/v1/auth/login").send({
       email: "owner@tracker.local",
       password: "changeme123",
     });
@@ -194,7 +194,7 @@ describe("task flow", () => {
     const accessToken = loginResponse.body.tokens.accessToken as string;
 
     const createResponse = await request
-      .post(`/api/projects/${testIds.projectId}/tasks`)
+      .post(`/api/v1/projects/${testIds.projectId}/tasks`)
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         title: "Normalize blank filters",
@@ -203,7 +203,7 @@ describe("task flow", () => {
     assert.equal(createResponse.status, 201);
 
     const listResponse = await request
-      .get(`/api/projects/${testIds.projectId}/tasks`)
+      .get(`/api/v1/projects/${testIds.projectId}/tasks`)
       .query({
         search: "   ",
         assigneeId: "   ",

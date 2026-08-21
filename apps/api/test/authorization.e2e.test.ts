@@ -20,12 +20,12 @@ describe("organization authorization", () => {
 
     const request = supertest(context.app.getHttpServer());
 
-    const ownerLogin = await request.post("/api/auth/login").send({
+    const ownerLogin = await request.post("/api/v1/auth/login").send({
       email: "owner@tracker.local",
       password: "changeme123",
     });
 
-    const engineerLogin = await request.post("/api/auth/login").send({
+    const engineerLogin = await request.post("/api/v1/auth/login").send({
       email: "engineer@tracker.local",
       password: "changeme123",
     });
@@ -37,7 +37,7 @@ describe("organization authorization", () => {
     const engineerToken = engineerLogin.body.tokens.accessToken as string;
 
     const ownerResponse = await request
-      .post("/api/projects")
+      .post("/api/v1/projects")
       .set("Authorization", `Bearer ${ownerToken}`)
       .send({
         organizationId: testIds.organizationId,
@@ -48,7 +48,7 @@ describe("organization authorization", () => {
     assert.equal(ownerResponse.status, 201);
 
     const deniedResponse = await request
-      .post("/api/projects")
+      .post("/api/v1/projects")
       .set("Authorization", `Bearer ${engineerToken}`)
       .send({
         organizationId: testIds.organizationId,
@@ -66,7 +66,7 @@ describe("organization authorization", () => {
     membership.role = "ADMIN";
 
     const adminResponse = await request
-      .post("/api/projects")
+      .post("/api/v1/projects")
       .set("Authorization", `Bearer ${engineerToken}`)
       .send({
         organizationId: testIds.organizationId,
@@ -83,7 +83,7 @@ describe("organization authorization", () => {
 
     const request = supertest(context.app.getHttpServer());
 
-    const engineerLogin = await request.post("/api/auth/login").send({
+    const engineerLogin = await request.post("/api/v1/auth/login").send({
       email: "engineer@tracker.local",
       password: "changeme123",
     });
@@ -92,7 +92,7 @@ describe("organization authorization", () => {
 
     const engineerToken = engineerLogin.body.tokens.accessToken as string;
 
-    const memberResponse = await request.post(`/api/organizations/${testIds.organizationId}/invitations`).set("Authorization", `Bearer ${engineerToken}`).send({
+    const memberResponse = await request.post(`/api/v1/organizations/${testIds.organizationId}/invitations`).set("Authorization", `Bearer ${engineerToken}`).send({
       email: "member-blocked@example.com",
       role: "MEMBER",
     });
@@ -104,7 +104,7 @@ describe("organization authorization", () => {
     assert.ok(membership);
     membership.role = "ADMIN";
 
-    const adminResponse = await request.post(`/api/organizations/${testIds.organizationId}/invitations`).set("Authorization", `Bearer ${engineerToken}`).send({
+    const adminResponse = await request.post(`/api/v1/organizations/${testIds.organizationId}/invitations`).set("Authorization", `Bearer ${engineerToken}`).send({
       email: "member-allowed@example.com",
       role: "MEMBER",
     });

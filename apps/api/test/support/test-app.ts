@@ -1,6 +1,6 @@
 import "reflect-metadata";
 
-import { ValidationPipe, type INestApplication } from "@nestjs/common";
+import { ValidationPipe, VersioningType, type INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import { hash } from "bcryptjs";
 import type {
@@ -880,6 +880,10 @@ export async function createTestApp(): Promise<TestAppContext> {
     credentials: true,
   });
   app.setGlobalPrefix("api");
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: "1",
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

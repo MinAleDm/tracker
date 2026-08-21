@@ -15,7 +15,7 @@ COPY packages/ui/package.json packages/ui/package.json
 RUN pnpm install --frozen-lockfile
 
 COPY . .
-ARG NEXT_PUBLIC_API_URL=/api
+ARG NEXT_PUBLIC_API_URL=/api/v1
 ARG NEXT_PUBLIC_SOCKET_URL=
 
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL

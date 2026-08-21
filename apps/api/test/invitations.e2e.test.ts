@@ -20,7 +20,7 @@ describe("invitation flow", () => {
 
     const request = supertest(context.app.getHttpServer());
 
-    const loginResponse = await request.post("/api/auth/login").send({
+    const loginResponse = await request.post("/api/v1/auth/login").send({
       email: "owner@tracker.local",
       password: "changeme123",
     });
@@ -30,7 +30,7 @@ describe("invitation flow", () => {
     const accessToken = loginResponse.body.tokens.accessToken as string;
 
     const createResponse = await request
-      .post(`/api/organizations/${testIds.organizationId}/invitations`)
+      .post(`/api/v1/organizations/${testIds.organizationId}/invitations`)
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         email: "New.User@Example.com",
@@ -49,7 +49,7 @@ describe("invitation flow", () => {
     };
 
     const acceptResponse = await request
-      .post("/api/auth/invitations/accept")
+      .post("/api/v1/auth/invitations/accept")
       .send(acceptBody);
 
     assert.equal(acceptResponse.status, 201);
@@ -73,7 +73,7 @@ describe("invitation flow", () => {
     assert.equal(createdMembership.role, "MEMBER");
 
     const repeatedResponse = await request
-      .post("/api/auth/invitations/accept")
+      .post("/api/v1/auth/invitations/accept")
       .send(acceptBody);
 
     assert.equal(repeatedResponse.status, 401);

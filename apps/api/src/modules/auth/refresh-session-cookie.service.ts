@@ -39,7 +39,7 @@ export class RefreshSessionCookieService {
       httpOnly: true,
       secure: this.configService.get("COOKIE_SECURE") === "true",
       sameSite: "strict",
-      path: "/api/auth",
+      path: "/api/v1/auth",
       expires: expiresAt,
     });
   }
@@ -49,7 +49,7 @@ export class RefreshSessionCookieService {
       httpOnly: true,
       secure: this.configService.get("COOKIE_SECURE") === "true",
       sameSite: "strict",
-      path: "/api/auth",
+      path: "/api/v1/auth",
     });
   }
 }

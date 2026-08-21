@@ -10,7 +10,7 @@ import type {
 } from "@tracker/types";
 import { useUiStore } from "@/store/use-ui-store";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api/v1";
 let refreshPromise: Promise<string | null> | null = null;
 
 class ApiError extends Error {
