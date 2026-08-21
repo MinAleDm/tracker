@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "nest start --watch",
     "build": "nest build",
+    "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\" --max-warnings=0",
     "start": "node dist/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --test --test-concurrency=1 -r ts-node/register -r ./test/support/test-environment.ts test/*.test.ts"

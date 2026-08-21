@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "corepack pnpm -r --parallel --filter @tracker/api --filter @tracker/web dev",
     "build": "corepack pnpm run db:generate && corepack pnpm -r build",
-    "lint": "corepack pnpm --filter @tracker/web lint",
+    "lint": "corepack pnpm -r --if-present lint",
     "typecheck": "corepack pnpm run db:generate && corepack pnpm -r typecheck",
     "test": "corepack pnpm run db:generate && corepack pnpm --filter @tracker/api test",
     "db:generate": "corepack pnpm --filter @tracker/db prisma:generate",
@@ -20,6 +20,8 @@
     "docker:down": "docker compose down -v"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "8.67.0",
+    "@typescript-eslint/parser": "8.67.0",
     "eslint": "^8.57.1",
     "eslint-config-next": "15.5.18",
     "typescript": "^5.9.3"
