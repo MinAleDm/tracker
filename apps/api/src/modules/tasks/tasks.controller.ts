@@ -1,6 +1,5 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query } from "@nestjs/common";
 import { CurrentUser } from "../../common/auth/current-user.decorator";
-import { JwtAuthGuard } from "../../common/auth/jwt-auth.guard";
 import type { RequestUser } from "../../common/auth/request-user";
 import { CreateCommentBodyDto } from "./dto/create-comment.dto";
 import { CreateTaskBodyDto } from "./dto/create-task.dto";
@@ -8,7 +7,6 @@ import { QueryTasksDto } from "./dto/query-tasks.dto";
 import { UpdateTaskBodyDto } from "./dto/update-task.dto";
 import { TasksService } from "./tasks.service";
 
-@UseGuards(JwtAuthGuard)
 @Controller()
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
