@@ -3,12 +3,12 @@ set -eu
 
 cd /app
 
-echo "Preparing database schema..."
+echo "Applying database migrations..."
 
 attempt=0
 max_attempts=30
 
-until pnpm --filter @tracker/db exec prisma db push --skip-generate --accept-data-loss --schema prisma/schema.prisma; do
+until pnpm --filter @tracker/db exec prisma migrate deploy --schema prisma/schema.prisma; do
   attempt=$((attempt + 1))
 
   if [ "$attempt" -ge "$max_attempts" ]; then
@@ -20,8 +20,10 @@ until pnpm --filter @tracker/db exec prisma db push --skip-generate --accept-dat
   sleep 2
 done
 
-echo "Seeding demo data..."
-pnpm --filter @tracker/db prisma:seed
+if [ "${SEED_DEMO_DATA:-false}" = "true" ]; then
+  echo "Seeding explicitly enabled demo data..."
+  pnpm --filter @tracker/db prisma:seed
+fi
 
 echo "Starting API..."
 exec node /app/apps/api/dist/main.js

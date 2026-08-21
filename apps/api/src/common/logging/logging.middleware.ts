@@ -7,12 +7,25 @@ export class LoggingMiddleware implements NestMiddleware {
 
   use(request: Request, response: Response, next: NextFunction) {
     const startedAt = Date.now();
+    const incomingRequestId = request.header("x-request-id");
+    const requestId = incomingRequestId && /^[a-zA-Z0-9._-]{8,64}$/.test(incomingRequestId)
+      ? incomingRequestId
+      : randomUUID();
+
+    response.setHeader("X-Request-Id", requestId);
 
     response.on("finish", () => {
       const duration = Date.now() - startedAt;
-      this.logger.log(`${request.method} ${request.originalUrl} ${response.statusCode} ${duration}ms`);
+      this.logger.log(JSON.stringify({
+        requestId,
+        method: request.method,
+        path: request.path,
+        statusCode: response.statusCode,
+        durationMs: duration,
+      }));
     });
 
     next();
   }
 }
+import { randomUUID } from "node:crypto";

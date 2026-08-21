@@ -34,6 +34,10 @@ spec:
         app.kubernetes.io/name: tracker
         app.kubernetes.io/component: redis
     spec:
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: redis
           image: redis:7-alpine
@@ -42,14 +46,32 @@ spec:
             - redis-server
             - --appendonly
             - "yes"
+            - --requirepass
+            - $(REDIS_PASSWORD)
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: tracker-secret
+                  key: REDIS_PASSWORD
           ports:
             - name: redis
               containerPort: 6379
           readinessProbe:
-            tcpSocket:
-              port: redis
+            exec:
+              command:
+                - sh
+                - -c
+                - redis-cli -a "$REDIS_PASSWORD" ping | grep PONG
             initialDelaySeconds: 3
             periodSeconds: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
           volumeMounts:
             - name: redis-data
               mountPath: /data
@@ -62,4 +84,3 @@ spec:
         resources:
           requests:
             storage: 1Gi
-

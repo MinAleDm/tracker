@@ -33,6 +33,10 @@ spec:
         app.kubernetes.io/name: tracker
         app.kubernetes.io/component: web
     spec:
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: web
           image: tracker-web:latest
@@ -40,17 +44,20 @@ spec:
           ports:
             - name: http
               containerPort: 3000
-          env:
-            - name: NEXT_PUBLIC_API_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: tracker-config
-                  key: NEXT_PUBLIC_API_URL
-            - name: NEXT_PUBLIC_SOCKET_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: tracker-config
-                  key: NEXT_PUBLIC_SOCKET_URL
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+          resources:
+            requests:
+              cpu: 100m
+              memory: 192Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
           readinessProbe:
             httpGet:
               path: /api/health
@@ -63,3 +70,9 @@ spec:
               port: http
             initialDelaySeconds: 30
             periodSeconds: 20
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}

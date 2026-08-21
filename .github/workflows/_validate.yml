@@ -18,6 +18,11 @@ jobs:
     env:
       CI: true
       DATABASE_URL: postgresql://tracker:tracker@localhost:5432/tracker?schema=public
+      POSTGRES_PASSWORD: ci-postgres-password
+      REDIS_PASSWORD: ci-redis-password
+      JWT_ACCESS_SECRET: ci-access-secret-that-is-at-least-32-characters
+      JWT_REFRESH_SECRET: ci-refresh-secret-that-is-at-least-32-characters
+      DEMO_USER_PASSWORD: ci-demo-password
 
     steps:
       - name: Checkout repository
@@ -32,7 +37,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.11.1
+          node-version: 22.13.1
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 

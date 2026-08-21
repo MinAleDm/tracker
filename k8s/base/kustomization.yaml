@@ -4,10 +4,9 @@ namespace: tracker
 resources:
   - namespace.yaml
   - configmap.yaml
-  - secret.yaml
   - postgres.yaml
   - redis.yaml
+  - network-policy.yaml
   - api.yaml
   - web.yaml
   - nginx.yaml
-

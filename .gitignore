@@ -12,6 +12,7 @@ test-results
 .env.development.local
 .env.test.local
 .env.production.local
+k8s/secret.env
 apps/web/.next
 apps/web/out
 apps/api/dist

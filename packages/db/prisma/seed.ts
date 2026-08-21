@@ -168,7 +168,11 @@ async function ensureProjectTask(
 
 async function main() {
   const email = process.env.DEMO_USER_EMAIL ?? "owner@tracker.local";
-  const password = process.env.DEMO_USER_PASSWORD ?? "changeme123";
+  const password = process.env.DEMO_USER_PASSWORD;
+
+  if (!password || password.length < 12) {
+    throw new Error("DEMO_USER_PASSWORD must contain at least 12 characters before seeding");
+  }
   const passwordHash = await hash(password, 12);
 
   const users: SeedUser[] = [
