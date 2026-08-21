@@ -6,26 +6,47 @@
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-08-21
+
 ### Added
 
-- Добавлены API health endpoints `/api/health/live` и `/api/health/ready`.
-- Добавлен web health endpoint `/api/health`.
-- Добавлены Docker healthchecks и Kubernetes HTTP probes для API и Web.
-- Добавлены CodeQL workflow и Dependabot configuration.
-- Добавлены скриншоты основных страниц в `docs/screenshots` и README.
-- Добавлены базовые Kubernetes-манифесты в `k8s/base` для PostgreSQL, Redis, API, Web и Nginx.
-- Добавлена инструкция по локальному запуску Kubernetes-контура в `k8s/README.md`.
-- Добавлен `CHANGELOG.md`.
+- Versioned HTTP contract `/api/v1`; health endpoints остаются version-neutral.
+- Строгая environment validation для JWT secrets, CORS, ports и production defaults.
+- Глобальные private-by-default JWT guard и rate limiting для API/auth flows.
+- Refresh-token families, rotation, reuse detection, logout revocation и scoped HttpOnly cookie.
+- Проверка active user и project membership перед Socket.IO room subscription.
+- Request IDs и структурированные HTTP logs без credentials и request bodies.
+- NetworkPolicy, restricted container contexts, resource limits и external secret template для Kubernetes.
+- API ESLint, Dependency Review, scheduled dependency audit, CODEOWNERS и GitHub templates.
+- `SECURITY.md`, `CONTRIBUTING.md`, `SUPPORT.md`, Code of Conduct и scoped `AGENTS.md`.
+- Architecture, ADR, threat model, project status и operations runbook.
+- Prisma migration `20260821180000_harden_refresh_sessions`.
 
 ### Changed
 
-- CI validation теперь рендерит Kubernetes-манифесты через `kubectl kustomize`.
-- В `TasksService` централизована проверка доступа к задаче для update/comment/activity flow.
+- Frontend хранит access token только в памяти, refresh token — только в HttpOnly cookie.
+- Dependencies обновлены до актуальных совместимых releases; high dependency audit очищен.
+- Runtime baseline переведён на Node.js 22 и non-root/read-only containers.
+- API startup применяет `prisma migrate deploy`; demo seed запускается только при явном флаге.
+- Redis защищён паролем, внутренние Compose ports привязаны к loopback, Nginx добавляет security headers.
+- README и component guides полностью синхронизированы с текущей архитектурой и deployment flow.
+- Удалён implicit `PrismaClient` singleton из общего DB package.
 
 ### Fixed
 
-- История активности задач теперь сохраняет пустую строку как значение изменения, а не превращает ее в `null`.
-- In-memory test repositories расширены методами, которые нужны для полного web smoke flow.
+- Закрыта cross-organization подписка на чужую Socket.IO project room.
+- Исправлена инвалидация всех task-list cache variants после mutation.
+- Отозванный refresh token теперь нельзя повторно использовать для продолжения family.
+- Удалены fallback/placeholder JWT secrets и browser-persisted credentials.
+- Plaintext Kubernetes Secret удалён из истории текущего дерева.
+- Устранены известные high-severity dependency vulnerabilities.
+
+### Breaking
+
+- Прикладные endpoints перемещены с `/api/*` на `/api/v1/*`; обновите API clients и reverse proxy rules.
+- Refresh session schema требует `prisma migrate deploy` до запуска `1.1.0`.
+- Существующие browser sessions необходимо создать заново: старые persisted tokens удаляются миграцией store,
+  а новые JWT требуют issuer/audience/type claims.
 
 ## [1.0.0] - 2026-07-11
 
@@ -35,3 +56,7 @@
 - JWT-аутентификация с refresh-token rotation.
 - Организации, участники, роли, проекты, задачи, комментарии и история активности.
 - Экраны обзора, задач, kanban-доски, аналитики и детальной карточки задачи.
+
+[Unreleased]: https://github.com/minkinad/tracker/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/minkinad/tracker/compare/35a3111...v1.1.0
+[1.0.0]: https://github.com/minkinad/tracker/tree/35a3111
