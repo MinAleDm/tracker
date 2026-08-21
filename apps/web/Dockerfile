@@ -3,7 +3,7 @@ FROM node:22-alpine AS builder
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
-RUN corepack enable
+RUN npm install --global pnpm@9.15.4 && pnpm --version
 
 WORKDIR /app
 
@@ -32,7 +32,7 @@ ENV PATH="$PNPM_HOME:$PATH"
 ENV NODE_ENV=production
 ENV HOME=/tmp
 
-RUN corepack enable
+RUN npm install --global pnpm@9.15.4 && pnpm --version
 
 WORKDIR /app
 

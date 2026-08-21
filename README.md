@@ -177,7 +177,7 @@ docker compose down
 Поднимите PostgreSQL и Redis, затем:
 
 ```bash
-corepack enable
+npm install --global pnpm@9.15.4
 pnpm install --frozen-lockfile
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env.local

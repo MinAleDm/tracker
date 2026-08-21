@@ -6,6 +6,11 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- GitHub Actions и Docker builds больше не зависят от устаревшего Corepack keyring в Node.js 22.13.1;
+  точная версия `pnpm@9.15.4` устанавливается напрямую, а workspace scripts используют активный pnpm.
+
 ## [1.1.0] - 2026-08-21
 
 ### Added

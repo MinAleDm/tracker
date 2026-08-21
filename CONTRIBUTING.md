@@ -14,7 +14,7 @@
 Требуются Node.js 22.13.1+, pnpm 9.15.4, PostgreSQL 16 и Redis 7.
 
 ```bash
-corepack enable
+npm install --global pnpm@9.15.4
 pnpm install --frozen-lockfile
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env.local
