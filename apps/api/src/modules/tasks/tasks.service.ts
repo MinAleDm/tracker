@@ -22,7 +22,7 @@ export class TasksService {
 
   async list(userId: string, filters: TaskFiltersDto): Promise<TaskListResponseDto> {
     const normalizedFilters = this.normalizeFilters(filters);
-    const cacheKey = `tasks:${userId}:${normalizedFilters.projectId}:${JSON.stringify(normalizedFilters)}`;
+    const cacheKey = `tasks:${normalizedFilters.projectId}:${userId}:${JSON.stringify(normalizedFilters)}`;
     const cached = await this.redisService.get<TaskListResponseDto>(cacheKey);
 
     if (cached) {
@@ -120,7 +120,7 @@ export class TasksService {
   }
 
   async listActivity(taskId: string, userId: string): Promise<TaskActivityDto[]> {
-    const existing = await this.findTaskForAction(taskId, userId, "task:activity:read");
+    await this.findTaskForAction(taskId, userId, "task:activity:read");
 
     const activity = await this.activityRepository.list(taskId);
     return activity.map(mapActivity);

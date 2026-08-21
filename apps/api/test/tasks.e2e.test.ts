@@ -73,6 +73,14 @@ describe("task flow", () => {
     assert.equal(updateResponse.body.status, "IN_PROGRESS");
     assert.equal(updateResponse.body.priority, "URGENT");
 
+    const updatedListResponse = await request
+      .get(`/api/projects/${testIds.projectId}/tasks`)
+      .set("Authorization", `Bearer ${accessToken}`);
+
+    assert.equal(updatedListResponse.status, 200);
+    assert.equal(updatedListResponse.body.data[0].status, "IN_PROGRESS");
+    assert.equal(updatedListResponse.body.data[0].priority, "URGENT");
+
     const clearDescriptionResponse = await request
       .patch(`/api/tasks/${taskId}`)
       .set("Authorization", `Bearer ${accessToken}`)
