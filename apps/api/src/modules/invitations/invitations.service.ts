@@ -74,7 +74,7 @@ export class InvitationsService {
 			);
 		}
 
-		const passwordHash = await hash(dto.password, 10);
+		const passwordHash = await hash(dto.password, 12);
 
 		const result = 
 			await this.invitationsRepository.acceptInvitation({

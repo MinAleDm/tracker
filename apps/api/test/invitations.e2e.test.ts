@@ -25,7 +25,7 @@ describe("invitation flow", () => {
       password: "changeme123",
     });
 
-    assert.equal(loginResponse.status, 201);
+    assert.equal(loginResponse.status, 200);
 
     const accessToken = loginResponse.body.tokens.accessToken as string;
 

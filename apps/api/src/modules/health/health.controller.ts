@@ -1,6 +1,8 @@
 import { Controller, Get, HttpCode, ServiceUnavailableException } from "@nestjs/common";
 import { HealthService } from "./health.service";
+import { Public } from "../../common/auth/public.decorator";
 
+@Public()
 @Controller("health")
 export class HealthController {
   constructor(private readonly healthService: HealthService) {}
@@ -22,4 +24,3 @@ export class HealthController {
     return result;
   }
 }
-

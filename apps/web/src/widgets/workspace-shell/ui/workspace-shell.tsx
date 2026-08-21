@@ -36,6 +36,7 @@ import { statusLabels, statusOrder, statusTone } from "@/lib/task-meta";
 import { getInitials } from "@/shared/lib/utils/string";
 import { workspaceNavItems } from "@/widgets/workspace-shell/config/navigation";
 import { openWorkspaceCommandMenu, WorkspaceCommandMenu } from "@/widgets/workspace-shell/ui/workspace-command-menu";
+import { apiClient } from "@/lib/api-client";
 
 export type { TaskScope, WorkspaceData } from "@/widgets/workspace-shell/model/types";
 export { filterTasksByScope } from "@/widgets/workspace-shell/lib/task-utils";
@@ -97,7 +98,6 @@ function WorkspaceSidebar({
   const router = useRouter();
   const [activePanel, setActivePanel] = useState<SidebarPanel | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
-  const clearSession = useUiStore((state) => state.clearSession);
   const setSelectedProjectId = useUiStore((state) => state.setSelectedProjectId);
   const requestTaskCreate = useUiStore((state) => state.requestTaskCreate);
 
@@ -324,14 +324,14 @@ function WorkspaceSidebar({
                   <p className="mt-1 truncate text-xs text-text/44">{data.userEmail}</p>
                   <p className="mt-2 text-xs font-semibold text-text/56">Роль в команде: {teamRole}</p>
                 </div>
-                <Button type="button" variant="ghost" className="px-3 py-2 text-sm text-rose-600 hover:bg-rose-50" onClick={clearSession}>
+                <Button type="button" variant="ghost" className="px-3 py-2 text-sm text-rose-600 hover:bg-rose-50" onClick={() => void apiClient.logout()}>
                   Выйти
                 </Button>
               </div>
               <button
                 type="button"
                 className="mt-4 w-full rounded-lg border border-black/[0.08] px-4 py-3 text-left text-sm font-semibold text-text transition hover:bg-black/[0.035]"
-                onClick={clearSession}
+                onClick={() => void apiClient.logout()}
               >
                 Добавить пользователя
                 <span className="mt-1 block text-xs font-normal text-text/44">Выйти на экран входа и авторизоваться ещё раз.</span>
@@ -670,11 +670,12 @@ export function WorkspacePage({
   children: (data: WorkspaceData) => ReactNode;
 }) {
   const hydrated = useUiStore((state) => state.hydrated);
+  const authReady = useUiStore((state) => state.authReady);
   const accessToken = useUiStore((state) => state.accessToken);
   const user = useUiStore((state) => state.user);
   const data = useWorkspaceData();
 
-  if (!hydrated) {
+  if (!hydrated || !authReady) {
     return (
       <main id="main-content" className="min-h-screen bg-[#f6f7f9] p-5">
         <SkeletonBoard />

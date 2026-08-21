@@ -10,6 +10,7 @@ import type { WorkspaceData } from "@/widgets/workspace-shell/model/types";
 
 export function useWorkspaceData(): WorkspaceData | null {
   const hydrated = useUiStore((state) => state.hydrated);
+  const authReady = useUiStore((state) => state.authReady);
   const accessToken = useUiStore((state) => state.accessToken);
   const user = useUiStore((state) => state.user);
   const selectedOrganizationId = useUiStore((state) => state.selectedOrganizationId);
@@ -98,7 +99,7 @@ export function useWorkspaceData(): WorkspaceData | null {
 
   useTaskRealtime(effectiveProjectId);
 
-  if (!hydrated || !accessToken || !user) {
+  if (!hydrated || !authReady || !accessToken || !user) {
     return null;
   }
 

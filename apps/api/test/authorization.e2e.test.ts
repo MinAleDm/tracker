@@ -30,8 +30,8 @@ describe("organization authorization", () => {
       password: "changeme123",
     });
 
-    assert.equal(ownerLogin.status, 201);
-    assert.equal(engineerLogin.status, 201);
+    assert.equal(ownerLogin.status, 200);
+    assert.equal(engineerLogin.status, 200);
 
     const ownerToken = ownerLogin.body.tokens.accessToken as string;
     const engineerToken = engineerLogin.body.tokens.accessToken as string;
@@ -88,7 +88,7 @@ describe("organization authorization", () => {
       password: "changeme123",
     });
 
-    assert.equal(engineerLogin.status, 201);
+    assert.equal(engineerLogin.status, 200);
 
     const engineerToken = engineerLogin.body.tokens.accessToken as string;
 

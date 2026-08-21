@@ -11,15 +11,14 @@ import { useUiStore } from "@/store/use-ui-store";
 export function SignInForm() {
   const router = useRouter();
   const setSession = useUiStore((state) => state.setSession);
-  const [email, setEmail] = useState("owner@tracker.local");
-  const [password, setPassword] = useState("changeme123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const mutation = useMutation({
     mutationFn: () => apiClient.login(email, password),
     onSuccess: (session) => {
       setSession({
         accessToken: session.tokens.accessToken,
-        refreshToken: session.tokens.refreshToken,
         user: session.user,
       });
       router.replace("/");

@@ -1,4 +1,5 @@
 import { Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import {
   ConnectedSocket,
@@ -12,19 +13,14 @@ import {
 } from "@nestjs/websockets";
 import type { Server, Socket } from "socket.io";
 import type { RealtimeTaskEventDto } from "@tracker/types";
+import { parseCorsOrigins } from "../../config/environment";
 import { ProjectsService } from "../projects/projects.service";
-
-function resolveCorsOrigins(): string[] {
-  return (process.env.CORS_ORIGIN ?? "http://localhost:3000")
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter(Boolean);
-}
+import { UsersService } from "../users/users.service";
 
 @WebSocketGateway({
   namespace: "/tasks",
   cors: {
-    origin: resolveCorsOrigins(),
+    origin: parseCorsOrigins(process.env.CORS_ORIGIN),
     credentials: true,
   },
 })
@@ -37,6 +33,8 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
   constructor(
     private readonly jwtService: JwtService,
     private readonly projectsService: ProjectsService,
+    private readonly usersService: UsersService,
+    private readonly configService: ConfigService,
   ) {}
 
   async handleConnection(client: Socket) {
@@ -48,18 +46,19 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
     }
 
     try {
-      const secret = process.env.JWT_ACCESS_SECRET;
-
-      if (!secret) {
-        throw new Error("JWT access secret is not configured");
-      }
-
-      const payload = await this.jwtService.verifyAsync<{ sub?: string }>(token, {
-        secret,
+      const payload = await this.jwtService.verifyAsync<{ sub?: string; typ?: string }>(token, {
+        secret: this.configService.getOrThrow<string>("JWT_ACCESS_SECRET"),
+        issuer: this.configService.getOrThrow<string>("JWT_ISSUER"),
+        audience: this.configService.getOrThrow<string>("JWT_AUDIENCE"),
       });
 
-      if (!payload.sub) {
-        throw new Error("JWT subject is missing");
+      if (!payload.sub || payload.typ !== "access") {
+        throw new Error("Invalid access token claims");
+      }
+
+      const user = await this.usersService.findById(payload.sub);
+      if (!user || user.status !== "ACTIVE") {
+        throw new Error("User session is no longer active");
       }
 
       client.data.userId = payload.sub;

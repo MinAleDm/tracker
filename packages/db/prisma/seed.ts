@@ -169,7 +169,7 @@ async function ensureProjectTask(
 async function main() {
   const email = process.env.DEMO_USER_EMAIL ?? "owner@tracker.local";
   const password = process.env.DEMO_USER_PASSWORD ?? "changeme123";
-  const passwordHash = await hash(password, 10);
+  const passwordHash = await hash(password, 12);
 
   const users: SeedUser[] = [
     { email, name: "Tracker Owner", role: UserRole.ADMIN, membershipRole: "OWNER" },

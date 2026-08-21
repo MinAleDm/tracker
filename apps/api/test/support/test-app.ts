@@ -31,6 +31,7 @@ interface UserRecord {
   name: string;
   passwordHash: string;
   role: UserRole;
+  status: "ACTIVE" | "DISABLED";
 }
 
 interface OrganizationRecord {
@@ -93,7 +94,9 @@ interface ActivityRecord {
 interface RefreshTokenRecord {
   id: string;
   userId: string;
+  familyId: string;
   tokenHash: string;
+  replacedByTokenHash: string | null;
   expiresAt: Date;
   createdAt: Date;
   revokedAt: Date | null;
@@ -157,6 +160,7 @@ class InMemoryTrackerStore {
         name: "Tracker Owner",
         passwordHash,
         role: "ADMIN",
+        status: "ACTIVE",
       },
       {
         id: testIds.engineerId,
@@ -164,6 +168,7 @@ class InMemoryTrackerStore {
         name: "Nina Engineer",
         passwordHash,
         role: "USER",
+        status: "ACTIVE",
       },
       {
         id: testIds.outsiderId,
@@ -171,6 +176,7 @@ class InMemoryTrackerStore {
         name: "External User",
         passwordHash,
         role: "USER",
+        status: "ACTIVE",
       },
     ];
 
@@ -399,12 +405,11 @@ function createOrganizationsRepository(
 
 function createAuthRepository(store: InMemoryTrackerStore): AuthRepository {
   return {
-    async createRefreshToken(userId: string, tokenHash: string, expiresAt: Date) {
+    async createRefreshToken(input) {
       const record: RefreshTokenRecord = {
         id: store.nextId("refresh"),
-        userId,
-        tokenHash,
-        expiresAt,
+        ...input,
+        replacedByTokenHash: null,
         createdAt: new Date(),
         revokedAt: null,
       };
@@ -412,29 +417,33 @@ function createAuthRepository(store: InMemoryTrackerStore): AuthRepository {
       store.refreshTokens.push(record);
       return record;
     },
-    async findValidRefreshTokens(userId: string) {
-      return store.refreshTokens
-        .filter(
-          (token) =>
-            token.userId === userId &&
-            token.revokedAt === null &&
-            token.expiresAt.getTime() > Date.now(),
-        )
-        .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
-        .map((token) => ({
-          id: token.id,
-          tokenHash: token.tokenHash,
-        }));
+    async findByTokenHash(tokenHash: string) {
+      return store.refreshTokens.find((token) => token.tokenHash === tokenHash) ?? null;
     },
-    async revokeRefreshToken(tokenId: string) {
+    async rotateRefreshToken(tokenId: string, nextToken) {
       const token = store.refreshTokens.find((record) => record.id === tokenId);
 
-      if (!token) {
-        throw new Error(`Refresh token ${tokenId} not found`);
+      if (!token || token.revokedAt || token.expiresAt.getTime() <= Date.now()) {
+        return false;
       }
 
       token.revokedAt = new Date();
-      return token;
+      token.replacedByTokenHash = nextToken.tokenHash;
+      store.refreshTokens.push({
+        id: store.nextId("refresh"),
+        ...nextToken,
+        replacedByTokenHash: null,
+        createdAt: new Date(),
+        revokedAt: null,
+      });
+      return true;
+    },
+    async revokeFamily(userId: string, familyId: string) {
+      for (const token of store.refreshTokens) {
+        if (token.userId === userId && token.familyId === familyId && !token.revokedAt) {
+          token.revokedAt = new Date();
+        }
+      }
     },
   } as AuthRepository;
 }
@@ -700,6 +709,7 @@ function createInvitationsRepository(
           name: input.name,
           passwordHash: input.passwordHash,
           role: "USER",
+          status: "ACTIVE",
         };
         store.users.push(user);
       }
@@ -824,10 +834,13 @@ export interface TestAppContext {
 }
 
 export async function createTestApp(): Promise<TestAppContext> {
-  process.env.JWT_ACCESS_SECRET = "test-access-secret";
-  process.env.JWT_REFRESH_SECRET = "test-refresh-secret";
+  process.env.JWT_ACCESS_SECRET = "test-access-secret-that-is-at-least-32-characters";
+  process.env.JWT_REFRESH_SECRET = "test-refresh-secret-that-is-at-least-32-characters";
   process.env.JWT_ACCESS_TTL = "15m";
   process.env.JWT_REFRESH_TTL = "7d";
+  process.env.JWT_ISSUER = "tracker-api";
+  process.env.JWT_AUDIENCE = "tracker-web";
+  process.env.COOKIE_SECURE = "false";
   process.env.CORS_ORIGIN = "http://127.0.0.1";
 
   const passwordHash = await hash("changeme123", 10);

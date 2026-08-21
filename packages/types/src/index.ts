@@ -12,7 +12,6 @@ export interface PaginationMetaDto {
 
 export interface AuthTokensDto {
   accessToken: string;
-  refreshToken: string;
 }
 
 export interface AuthUserDto {
@@ -31,10 +30,6 @@ export interface AuthSessionDto {
 export interface LoginDto {
   email: string;
   password: string;
-}
-
-export interface RefreshTokenDto {
-  refreshToken: string;
 }
 
 export interface OrganizationDto {

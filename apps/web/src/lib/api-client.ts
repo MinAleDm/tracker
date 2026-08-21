@@ -11,6 +11,7 @@ import type {
 import { useUiStore } from "@/store/use-ui-store";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
+let refreshPromise: Promise<string | null> | null = null;
 
 class ApiError extends Error {
   constructor(
@@ -21,20 +22,15 @@ class ApiError extends Error {
   }
 }
 
-async function refreshTokens() {
+async function performTokenRefresh() {
   const store = useUiStore.getState();
-
-  if (!store.refreshToken) {
-    store.clearSession();
-    return null;
-  }
 
   const response = await fetch(`${API_URL}/auth/refresh`, {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ refreshToken: store.refreshToken }),
   });
 
   if (!response.ok) {
@@ -42,9 +38,17 @@ async function refreshTokens() {
     return null;
   }
 
-  const tokens = (await response.json()) as { accessToken: string; refreshToken: string };
-  store.updateTokens(tokens);
+  const tokens = (await response.json()) as { accessToken: string };
+  store.updateAccessToken(tokens.accessToken);
   return tokens.accessToken;
+}
+
+async function refreshAccessToken() {
+  refreshPromise ??= performTokenRefresh().finally(() => {
+    refreshPromise = null;
+  });
+
+  return refreshPromise;
 }
 
 async function request<T>(path: string, init?: RequestInit, shouldRetry = true): Promise<T> {
@@ -59,11 +63,12 @@ async function request<T>(path: string, init?: RequestInit, shouldRetry = true):
   const response = await fetch(`${API_URL}${path}`, {
     ...init,
     headers,
+    credentials: "include",
   });
 
   // При протухшем access token один раз обновляем пару токенов и повторяем исходный запрос.
   if (response.status === 401 && shouldRetry) {
-    const token = await refreshTokens();
+    const token = await refreshAccessToken();
 
     if (token) {
       return request<T>(path, init, false);
@@ -83,13 +88,33 @@ export const apiClient = {
     return request<AuthSessionDto>("/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
-    });
+    }, false);
+  },
+  async restoreSession() {
+    const accessToken = await refreshAccessToken();
+    if (!accessToken) {
+      return null;
+    }
+
+    const session = await request<Pick<AuthSessionDto, "user" | "organizations">>("/auth/me", undefined, false);
+    return { accessToken, ...session };
+  },
+  async logout() {
+    try {
+      await fetch(`${API_URL}/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+    } finally {
+      useUiStore.getState().clearSession();
+    }
   },
   async getOrganizations() {
     return request<OrganizationDto[]>("/organizations");
   },
   async getProjects(organizationId: string) {
-    return request<ProjectDto[]>(`/projects?organizationId=${organizationId}`);
+    return request<ProjectDto[]>(`/projects?organizationId=${encodeURIComponent(organizationId)}`);
   },
   async createProject(input: { organizationId: string; key: string; name: string; description?: string }) {
     return request<ProjectDto>("/projects", {

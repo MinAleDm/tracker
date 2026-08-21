@@ -16,8 +16,8 @@ export interface SavedTaskView {
 
 interface UiState {
   hydrated: boolean;
+  authReady: boolean;
   accessToken: string | null;
-  refreshToken: string | null;
   user: AuthUserDto | null;
   selectedOrganizationId: string | null;
   selectedProjectId: string | null;
@@ -28,8 +28,9 @@ interface UiState {
   savedTaskViews: SavedTaskView[];
   createTaskSignal: number;
   setHydrated: (value: boolean) => void;
-  setSession: (input: { accessToken: string; refreshToken: string; user: AuthUserDto }) => void;
-  updateTokens: (input: { accessToken: string; refreshToken: string }) => void;
+  setSession: (input: { accessToken: string; user: AuthUserDto }) => void;
+  updateAccessToken: (accessToken: string) => void;
+  completeAuthBootstrap: () => void;
   clearSession: () => void;
   setSelectedOrganizationId: (value: string | null) => void;
   setSelectedProjectId: (value: string | null) => void;
@@ -47,8 +48,8 @@ export const useUiStore = create<UiState>()(
   persist(
     (set) => ({
       hydrated: false,
+      authReady: false,
       accessToken: null,
-      refreshToken: null,
       user: null,
       selectedOrganizationId: null,
       selectedProjectId: null,
@@ -59,21 +60,17 @@ export const useUiStore = create<UiState>()(
       savedTaskViews: [],
       createTaskSignal: 0,
       setHydrated: (hydrated) => set({ hydrated }),
-      setSession: ({ accessToken, refreshToken, user }) =>
+      setSession: ({ accessToken, user }) =>
         set({
           accessToken,
-          refreshToken,
           user,
+          authReady: true,
         }),
-      updateTokens: ({ accessToken, refreshToken }) =>
-        set({
-          accessToken,
-          refreshToken,
-        }),
+      updateAccessToken: (accessToken) => set({ accessToken }),
+      completeAuthBootstrap: () => set({ authReady: true }),
       clearSession: () =>
         set({
           accessToken: null,
-          refreshToken: null,
           user: null,
           selectedOrganizationId: null,
           selectedProjectId: null,
@@ -121,10 +118,16 @@ export const useUiStore = create<UiState>()(
     }),
     {
       name: "tracker-web-ui",
+      version: 2,
+      migrate: (persistedState) => {
+        const safeState = { ...(persistedState as Record<string, unknown>) };
+        delete safeState.accessToken;
+        delete safeState.refreshToken;
+        delete safeState.user;
+        delete safeState.authReady;
+        return safeState;
+      },
       partialize: (state) => ({
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
-        user: state.user,
         selectedOrganizationId: state.selectedOrganizationId,
         selectedProjectId: state.selectedProjectId,
         search: state.search,

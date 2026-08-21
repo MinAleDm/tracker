@@ -5,6 +5,8 @@ import {
 	Post,
 	UseGuards,
 } from "@nestjs/common";
+import { Public } from "../../common/auth/public.decorator";
+import { RateLimit } from "../../common/rate-limit/rate-limit.decorator";
 import { CurrentUser } from "../../common/auth/current-user.decorator";
 import { JwtAuthGuard } from "../../common/auth/jwt-auth.guard";
 import type { RequestUser } from "../../common/auth/request-user";
@@ -33,6 +35,8 @@ export class InvitationsController {
 	}
 
 	@Post("auth/invitations/accept")
+	@Public()
+	@RateLimit({ limit: 10, windowMs: 60_000 })
 	acceptInvitation(@Body() dto: AcceptInvitationBodyDto) {
 		return this.invitationsService.acceptInvitation(dto);
 	}
