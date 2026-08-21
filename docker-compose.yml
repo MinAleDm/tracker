@@ -58,11 +58,11 @@ services:
       JWT_REFRESH_TTL: 7d
       CORS_ORIGIN: http://localhost:${NGINX_PORT:-8080},http://127.0.0.1:${NGINX_PORT:-8080},http://localhost:${WEB_PORT:-3000},http://127.0.0.1:${WEB_PORT:-3000}
       DEMO_USER_EMAIL: ${DEMO_USER_EMAIL:-owner@tracker.local}
-      DEMO_USER_PASSWORD: ${DEMO_USER_PASSWORD:?Set DEMO_USER_PASSWORD in .env}
+      DEMO_USER_PASSWORD: ${DEMO_USER_PASSWORD:-}
       COOKIE_SECURE: "false"
       SWAGGER_ENABLED: ${SWAGGER_ENABLED:-true}
       TRUST_PROXY_HOPS: "1"
-      SEED_DEMO_DATA: ${SEED_DEMO_DATA:-true}
+      SEED_DEMO_DATA: ${SEED_DEMO_DATA:-false}
     ports:
       - "127.0.0.1:${API_PORT:-3001}:3001"
     read_only: true
