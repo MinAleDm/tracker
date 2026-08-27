@@ -53,7 +53,7 @@ export function TaskViewBar({ userId }: { userId: string }) {
       },
       {
         id: "triage",
-        label: "Нужен triage",
+        label: "Нужен разбор",
         filters: { search: "", status: "TODO" as const, priority: "ALL" as const, assigneeId: "unassigned" },
       },
     ],
@@ -65,17 +65,17 @@ export function TaskViewBar({ userId }: { userId: string }) {
   const hasCustomFilters = !activePresetId && !activeSavedViewId;
 
   return (
-    <section className="tracker-panel flex min-w-0 flex-col gap-2 rounded-xl p-2 sm:flex-row sm:items-center">
+    <section className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
       <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
-        <span className="shrink-0 px-2 text-[11px] font-semibold uppercase tracking-wide text-text/36">Views</span>
+        <span className="shrink-0 px-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Представления</span>
         {presets.map((preset) => (
           <button
             key={preset.id}
             type="button"
             onClick={() => applyTaskView(preset.filters)}
             className={clsx(
-              "shrink-0 rounded-lg px-3 py-2 text-sm font-medium transition",
-              activePresetId === preset.id ? "bg-[#25282e] text-white shadow-sm" : "text-text/58 hover:bg-muted hover:text-text",
+              "shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition",
+              activePresetId === preset.id ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
             {preset.label}
@@ -83,11 +83,11 @@ export function TaskViewBar({ userId }: { userId: string }) {
         ))}
 
         {savedTaskViews.map((view) => (
-          <div key={view.id} className={clsx("flex shrink-0 items-center rounded-lg", activeSavedViewId === view.id ? "bg-accent/10" : "hover:bg-muted")}>
+          <div key={view.id} className={clsx("flex shrink-0 items-center rounded-md", activeSavedViewId === view.id ? "bg-accent" : "hover:bg-muted")}>
             <button
               type="button"
               onClick={() => applyTaskView(view)}
-              className={clsx("px-3 py-2 text-sm font-medium", activeSavedViewId === view.id ? "text-accent" : "text-text/58")}
+              className={clsx("px-3 py-1.5 text-sm font-medium", activeSavedViewId === view.id ? "text-accent-foreground" : "text-muted-foreground")}
             >
               {view.name}
             </button>
@@ -95,7 +95,7 @@ export function TaskViewBar({ userId }: { userId: string }) {
               type="button"
               aria-label={`Удалить view ${view.name}`}
               onClick={() => deleteTaskView(view.id)}
-              className="mr-1 rounded px-1.5 py-1 text-xs text-text/32 hover:bg-white hover:text-text"
+              className="mr-1 rounded px-1.5 py-1 text-xs text-muted-foreground hover:bg-background hover:text-foreground"
             >
               ×
             </button>
@@ -114,13 +114,13 @@ export function TaskViewBar({ userId }: { userId: string }) {
             setIsComposing(false);
           }}
         >
-          <Input autoFocus value={name} onChange={(event) => setName(event.target.value)} placeholder="Название view" className="w-44 py-2" />
-          <Button type="submit" variant="primary">Сохранить</Button>
-          <Button type="button" variant="ghost" aria-label="Отменить сохранение view" onClick={() => setIsComposing(false)}>×</Button>
+          <Input autoFocus value={name} onChange={(event) => setName(event.target.value)} placeholder="Название" className="w-40" />
+          <Button type="submit" size="sm">Сохранить</Button>
+          <Button type="button" size="sm" variant="ghost" aria-label="Отменить сохранение представления" onClick={() => setIsComposing(false)}>×</Button>
         </form>
       ) : (
-        <Button type="button" variant="ghost" className="shrink-0" disabled={!hasCustomFilters} onClick={() => setIsComposing(true)}>
-          + Сохранить view
+        <Button type="button" variant="ghost" size="sm" className="shrink-0" disabled={!hasCustomFilters} onClick={() => setIsComposing(true)}>
+          Сохранить
         </Button>
       )}
     </section>

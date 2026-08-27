@@ -2,144 +2,65 @@
 
 import Link from "next/link";
 import type { Route } from "next";
-import type { TaskDto, TaskPriority, TaskStatus, UserSummaryDto } from "@tracker/types";
-import { Badge, Select } from "@tracker/ui";
-import { type TaskUpdateInput, useTaskUpdate } from "@/features/task-update/model/use-task-update";
-import { priorityLabels, statusLabels, statusOrder, statusTone } from "@/lib/task-meta";
+import type { TaskDto } from "@tracker/types";
+import { Badge } from "@tracker/ui";
+import { priorityLabels, priorityTone, statusLabels, statusTone } from "@/lib/task-meta";
 import { formatRelativeDate } from "@/shared/lib/utils/date";
+import { getInitials } from "@/shared/lib/utils/string";
 import { CommentIcon } from "@/shared/ui/tracker-icons";
 import { taskKey } from "@/widgets/workspace-shell/lib/task-utils";
 import { isTaskStale } from "@/widgets/workspace-shell/lib/workspace-insights";
 import { EmptyState } from "@/widgets/workspace-shell/ui/empty-state";
 
-const rowGrid = "xl:grid-cols-[96px_minmax(280px,1fr)_128px_180px_170px_116px]";
+const rowGrid = "md:grid-cols-[88px_minmax(260px,1fr)_120px_140px_170px_110px]";
 
-function FieldLabel({ children }: { children: string }) {
-  return <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-text/36 xl:hidden">{children}</span>;
-}
-
-export function TasksTable({ tasks, users }: { tasks: TaskDto[]; users: UserSummaryDto[] }) {
-  const updateMutation = useTaskUpdate();
-
-  const updateTask = (task: TaskDto, input: TaskUpdateInput) => {
-    updateMutation.mutate({ taskId: task.id, input });
-  };
-
+export function TasksTable({ tasks }: { tasks: TaskDto[] }) {
   if (tasks.length === 0) {
-    return <EmptyState title="Задач не найдено" description="Сбросьте фильтры, смените представление или создайте новую задачу." />;
+    return <EmptyState title="Задач не найдено" description="Сбросьте фильтры или выберите другое представление." />;
   }
 
   return (
-    <div className="overflow-hidden bg-card">
-      <div className="hidden border-b border-border bg-muted/55 px-4 py-2.5 xl:block">
-        <div className={`grid gap-3 text-[11px] font-semibold uppercase tracking-wide text-text/36 ${rowGrid}`}>
-          <span>Ключ</span>
-          <span>Задача</span>
-          <span>Приоритет</span>
-          <span>Исполнитель</span>
-          <span>Статус</span>
-          <span>Обновлено</span>
+    <div className="bg-card">
+      <div className="hidden border-b bg-muted/40 px-4 py-2.5 md:block">
+        <div className={`grid gap-3 text-[11px] font-medium uppercase tracking-wide text-muted-foreground ${rowGrid}`}>
+          <span>Ключ</span><span>Задача</span><span>Приоритет</span><span>Статус</span><span>Исполнитель</span><span>Обновлено</span>
         </div>
       </div>
 
-      <div className="divide-y divide-border">
+      <div className="divide-y">
         {tasks.map((task) => {
           const stale = isTaskStale(task);
-          const isUpdating = updateMutation.isPending && updateMutation.variables?.taskId === task.id;
-
           return (
-            <article
+            <Link
               key={task.id}
-              aria-busy={isUpdating}
-              className={`grid gap-3 px-4 py-3 transition hover:bg-muted/45 xl:items-center ${rowGrid}`}
+              href={`/tasks/${task.id}` as Route}
+              className={`group block gap-3 px-4 py-3 transition-colors hover:bg-muted/40 md:grid md:items-center ${rowGrid}`}
             >
-              <div>
-                <FieldLabel>Ключ</FieldLabel>
-                <Link href={`/tasks/${task.id}` as Route} className="font-mono text-xs font-bold uppercase text-text/44 hover:text-accent">
-                  {taskKey(task)}
-                </Link>
-              </div>
+              <span className="font-mono text-[11px] font-semibold uppercase text-muted-foreground">{taskKey(task)}</span>
 
-              <div className="min-w-0">
-                <FieldLabel>Задача</FieldLabel>
-                <Link href={`/tasks/${task.id}` as Route} className="block truncate text-sm font-semibold text-text hover:text-accent">
-                  {task.title}
-                </Link>
-                <p className="mt-1 line-clamp-1 text-xs leading-5 text-text/46">{task.description || "Описание не заполнено"}</p>
-                <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-text/40">
-                  <span className="inline-flex items-center gap-1">
-                    <CommentIcon size={13} />
-                    {task.commentsCount}
-                  </span>
-                  {stale ? <Badge tone="danger">Без движения</Badge> : null}
-                  {!task.assignee ? <Badge tone="warning">Нужен owner</Badge> : null}
-                </div>
-              </div>
-
-              <div>
-                <FieldLabel>Приоритет</FieldLabel>
-                <Select
-                  aria-label={`Приоритет задачи ${task.title}`}
-                  value={task.priority}
-                  disabled={isUpdating}
-                  onChange={(event) => updateTask(task, { priority: event.target.value as TaskPriority })}
-                  className="py-1.5 text-xs"
-                >
-                  {Object.entries(priorityLabels).map(([priority, label]) => (
-                    <option key={priority} value={priority}>
-                      {label}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-
-              <div>
-                <FieldLabel>Исполнитель</FieldLabel>
-                <Select
-                  aria-label={`Исполнитель задачи ${task.title}`}
-                  value={task.assignee?.id ?? ""}
-                  disabled={isUpdating}
-                  onChange={(event) => updateTask(task, { assigneeId: event.target.value || null })}
-                  className="py-1.5 text-xs"
-                >
-                  <option value="">Не назначен</option>
-                  {users.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.name}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-
-              <div>
-                <FieldLabel>Статус</FieldLabel>
-                <div className="flex items-center gap-2">
+              <span className="mt-1 block min-w-0 md:mt-0">
+                <span className="block truncate text-sm font-medium group-hover:text-primary">{task.title}</span>
+                <span className="mt-1 block truncate text-xs text-muted-foreground">{task.description || "Без описания"}</span>
+                <span className="mt-1.5 flex items-center gap-2 text-xs text-muted-foreground md:hidden">
                   <Badge tone={statusTone[task.status]}>{statusLabels[task.status]}</Badge>
-                  <Select
-                    aria-label={`Статус задачи ${task.title}`}
-                    value={task.status}
-                    disabled={isUpdating}
-                    onChange={(event) => updateTask(task, { status: event.target.value as TaskStatus })}
-                    className="min-w-0 py-1.5 text-xs"
-                  >
-                    {statusOrder.map((status) => (
-                      <option key={status} value={status}>
-                        {statusLabels[status]}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-              </div>
+                  <Badge tone={priorityTone[task.priority]}>{priorityLabels[task.priority]}</Badge>
+                </span>
+              </span>
 
-              <div>
-                <FieldLabel>Обновлено</FieldLabel>
-                <p className="text-xs text-text/46">{formatRelativeDate(task.updatedAt)}</p>
-                {isUpdating ? <p className="mt-1 text-xs font-semibold text-accent">Сохраняю…</p> : null}
-                <Link href={`/tasks/${task.id}` as Route} className="mt-1 inline-flex text-xs font-semibold text-accent hover:underline">
-                  Открыть →
-                </Link>
-              </div>
-            </article>
+              <span className="hidden md:block"><Badge tone={priorityTone[task.priority]}>{priorityLabels[task.priority]}</Badge></span>
+              <span className="hidden md:block"><Badge tone={statusTone[task.status]}>{statusLabels[task.status]}</Badge></span>
+
+              <span className="mt-3 flex min-w-0 items-center gap-2 md:mt-0">
+                <span className="grid size-7 shrink-0 place-items-center rounded-full bg-accent text-[10px] font-semibold text-accent-foreground">{getInitials(task.assignee?.name ?? "—")}</span>
+                <span className="truncate text-xs text-muted-foreground">{task.assignee?.name ?? "Не назначен"}</span>
+              </span>
+
+              <span className="mt-2 flex items-center gap-3 text-xs text-muted-foreground md:mt-0 md:block">
+                <span>{formatRelativeDate(task.updatedAt)}</span>
+                <span className="inline-flex items-center gap-1 md:mt-1 md:flex"><CommentIcon size={12} />{task.commentsCount}</span>
+                {stale ? <span className="text-destructive md:mt-1 md:block">Без движения</span> : null}
+              </span>
+            </Link>
           );
         })}
       </div>

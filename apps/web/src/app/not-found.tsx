@@ -9,7 +9,7 @@ export default function NotFound() {
         <p className="mt-2 text-sm leading-6 text-text/54">Возможно, адрес изменился или у вас больше нет доступа к этому разделу.</p>
         <Link
           href="/"
-          className="mt-6 inline-flex min-h-10 items-center justify-center rounded-lg bg-[#25282e] px-4 text-sm font-semibold text-white transition hover:bg-[#17191d]"
+          className="mt-6 inline-flex min-h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
         >
           Вернуться на главную
         </Link>

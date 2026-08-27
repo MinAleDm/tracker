@@ -55,7 +55,7 @@ export function Providers({ children }: PropsWithChildren) {
   }, [completeAuthBootstrap, hydrated, setSession]);
 
   return (
-    <ThemeProvider attribute="class" forcedTheme="light" enableSystem={false}>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </ThemeProvider>
   );

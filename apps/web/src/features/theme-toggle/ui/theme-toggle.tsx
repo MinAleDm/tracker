@@ -1,18 +1,21 @@
 "use client";
 
 import { useTheme } from "next-themes";
+import { Button } from "@tracker/ui";
+import { Moon, Sun } from "lucide-react";
 
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
 
   return (
-    <button
+    <Button
       type="button"
-      className="rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold text-white/70 transition hover:bg-white/15 hover:text-white"
+      variant="ghost"
+      size="icon"
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-      aria-label="Toggle color theme"
+      aria-label="Переключить цветовую тему"
     >
-      {resolvedTheme === "dark" ? "Light" : "Dark"}
-    </button>
+      {resolvedTheme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+    </Button>
   );
 }

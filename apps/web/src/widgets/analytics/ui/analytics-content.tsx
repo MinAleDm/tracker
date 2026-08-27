@@ -1,168 +1,134 @@
 "use client";
 
-import { Badge } from "@tracker/ui";
+import type { TaskStatus } from "@tracker/types";
+import { Badge, Card } from "@tracker/ui";
 import { priorityLabels, priorityTone, statusLabels, statusTone } from "@/lib/task-meta";
-import { countByStatus, getCompletion } from "@/widgets/workspace-shell/lib/task-utils";
 import {
   getAttentionCounts,
-  getDeliveryStats,
   getPriorityMix,
-  getProjectPulse,
   getStatusBreakdown,
   getTeamWorkload,
   getTimeline,
 } from "@/widgets/workspace-shell/lib/workspace-insights";
 import type { WorkspaceData } from "@/widgets/workspace-shell/model/types";
 
+const statusBar: Record<TaskStatus, string> = {
+  TODO: "bg-slate-400",
+  IN_PROGRESS: "bg-sky-500",
+  REVIEW: "bg-amber-500",
+  DONE: "bg-emerald-500",
+};
+
+function Metric({ label, value, hint, tone = "neutral" }: { label: string; value: number; hint: string; tone?: "neutral" | "warning" | "danger" }) {
+  return (
+    <Card className="p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">{label}</p>
+          <p className="mt-2 text-3xl font-semibold tabular-nums">{value}</p>
+        </div>
+        {value > 0 && tone !== "neutral" ? <Badge tone={tone}>Требует внимания</Badge> : null}
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">{hint}</p>
+    </Card>
+  );
+}
+
 export function AnalyticsContent({ data }: { data: WorkspaceData }) {
-  const completion = getCompletion(data.tasks);
-  const pulse = getProjectPulse(data.tasks);
   const attention = getAttentionCounts(data.tasks);
-  const delivery = getDeliveryStats(data.tasks);
-  const statusBreakdown = getStatusBreakdown(data.tasks);
-  const statusMax = Math.max(...statusBreakdown.map((item) => item.count), 1);
-  const assigneeGroups = getTeamWorkload(data.tasks, data.members);
-  const assigneeMax = Math.max(...assigneeGroups.map((item) => item.inFlight), 1);
+  const statuses = getStatusBreakdown(data.tasks);
+  const priorities = getPriorityMix(data.tasks.filter((task) => task.status !== "DONE"));
+  const workload = getTeamWorkload(data.tasks, data.members);
   const timeline = getTimeline(data.tasks, 7);
-  const timelineMax = Math.max(...timeline.map((point) => Math.max(point.created, point.closed, point.touched)), 1);
-  const priorityMix = getPriorityMix(data.tasks);
-  const priorityMax = Math.max(...priorityMix.map((item) => item.count), 1);
+  const maxStatus = Math.max(1, ...statuses.map((item) => item.count));
+  const maxWorkload = Math.max(1, ...workload.map((item) => item.inFlight));
+  const maxTimeline = Math.max(1, ...timeline.flatMap((item) => [item.created, item.touched]));
+  const hasRecentActivity = timeline.some((item) => item.created > 0 || item.touched > 0);
 
   return (
     <div className="space-y-5">
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-xl border border-black/[0.08] bg-[#111827] px-6 py-6 text-white shadow-sm">
-          <p className="text-xs uppercase text-white/46">Пульс проекта</p>
-          <p className="mt-2 text-5xl font-semibold tracking-normal">{pulse.score}</p>
-          <p className="mt-3 text-sm leading-6 text-white/72">{pulse.summary}</p>
-        </div>
-        <div className="rounded-xl border border-black/[0.08] bg-white/82 p-6 shadow-sm">
-          <p className="text-xs uppercase text-text/40">Готовность</p>
-          <p className="mt-2 text-5xl font-semibold tracking-normal text-text">{completion}%</p>
-          <p className="mt-3 text-sm leading-6 text-text/56">Доля задач в статусе Done внутри текущего проекта.</p>
-        </div>
-        <div className="rounded-xl border border-black/[0.08] bg-white/82 p-6 shadow-sm">
-          <p className="text-xs uppercase text-text/40">Темп 7д</p>
-          <p className="mt-2 text-5xl font-semibold tracking-normal text-text">{delivery.closed}</p>
-          <p className="mt-3 text-sm leading-6 text-text/56">Закрытых задач за неделю при {delivery.created} новых элементах.</p>
-        </div>
-        <div className="rounded-xl border border-black/[0.08] bg-white/82 p-6 shadow-sm">
-          <p className="text-xs uppercase text-text/40">Риски</p>
-          <p className="mt-2 text-5xl font-semibold tracking-normal text-text">{attention.stale + attention.unassigned}</p>
-          <p className="mt-3 text-sm leading-6 text-text/56">Застрявшие и неразобранные задачи, требующие внимания команды.</p>
-        </div>
-      </section>
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <Metric label="В работе" value={statuses.find((item) => item.status === "IN_PROGRESS")?.count ?? 0} hint="Активные незакрытые задачи" />
+        <Metric label="На ревью" value={attention.review} hint="Ждут проверки или решения" tone="warning" />
+        <Metric label="Без исполнителя" value={attention.unassigned} hint="Только незакрытые задачи" tone="warning" />
+        <Metric label="Без движения" value={attention.stale} hint="Не обновлялись более 7 дней" tone="danger" />
+      </div>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_360px]">
-        <section className="rounded-xl border border-black/[0.08] bg-white/82 p-6 shadow-sm">
-          <p className="text-xs uppercase text-text/40">Workflow health</p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-normal text-text">Распределение по статусам</h2>
-          <div className="mt-6 space-y-5">
-            {statusBreakdown.map((item) => (
+      <div className="grid gap-5 xl:grid-cols-2">
+        <Card className="p-5">
+          <h2 className="font-semibold">Состояние потока</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Количество задач на каждом этапе</p>
+          <div className="mt-5 space-y-4">
+            {statuses.map((item) => (
               <div key={item.status}>
-                <div className="flex items-center justify-between gap-4">
+                <div className="mb-2 flex items-center justify-between gap-3 text-sm">
                   <Badge tone={statusTone[item.status]}>{statusLabels[item.status]}</Badge>
-                  <span className="text-sm font-semibold text-text">{item.count}</span>
+                  <span className="font-semibold tabular-nums">{item.count}</span>
                 </div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-black/[0.06]">
-                  <div className="h-full rounded-full bg-[#111827]" style={{ width: `${Math.max((item.count / statusMax) * 100, item.count ? 8 : 0)}%` }} />
+                <div className="h-2 overflow-hidden rounded-full bg-muted">
+                  <div className={`h-full rounded-full ${statusBar[item.status]}`} style={{ width: `${(item.count / maxStatus) * 100}%` }} />
                 </div>
               </div>
             ))}
           </div>
-        </section>
+        </Card>
 
-        <aside className="space-y-5">
-          <section className="rounded-xl border border-black/[0.08] bg-white/82 p-6 shadow-sm">
-            <p className="text-lg font-semibold text-text">Очереди</p>
-            <div className="mt-4 space-y-3">
-              <div className="flex items-center justify-between gap-3 rounded-lg bg-[#f4f6f8] px-4 py-3">
-                <span className="text-sm text-text/56">В работе</span>
-                <span className="text-sm font-bold text-text">{countByStatus(data.tasks, "IN_PROGRESS")}</span>
+        <Card className="p-5">
+          <h2 className="font-semibold">Активные задачи по исполнителям</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Это объём назначенной работы, не оценка загрузки или производительности</p>
+          <div className="mt-5 space-y-4">
+            {workload.length ? workload.map((item) => (
+              <div key={item.member.id}>
+                <div className="mb-2 flex items-center justify-between gap-3 text-sm">
+                  <span className="truncate font-medium">{item.member.name}</span>
+                  <span className="shrink-0 text-muted-foreground"><strong className="text-foreground">{item.inFlight}</strong> активных · {item.done} закрыто</span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-muted">
+                  <div className="h-full rounded-full bg-primary" style={{ width: `${(item.inFlight / maxWorkload) * 100}%` }} />
+                </div>
               </div>
-              <div className="flex items-center justify-between gap-3 rounded-lg bg-[#f4f6f8] px-4 py-3">
-                <span className="text-sm text-text/56">На ревью</span>
-                <span className="text-sm font-bold text-text">{attention.review}</span>
-              </div>
-              <div className="flex items-center justify-between gap-3 rounded-lg bg-[#f4f6f8] px-4 py-3">
-                <span className="text-sm text-text/56">Без исполнителя</span>
-                <span className="text-sm font-bold text-text">{attention.unassigned}</span>
-              </div>
-              <div className="flex items-center justify-between gap-3 rounded-lg bg-[#f4f6f8] px-4 py-3">
-                <span className="text-sm text-text/56">Застрявшие</span>
-                <span className="text-sm font-bold text-text">{attention.stale}</span>
-              </div>
-            </div>
-          </section>
+            )) : <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">В проекте пока нет участников.</p>}
+          </div>
+        </Card>
+      </div>
 
-          <section className="rounded-xl border border-black/[0.08] bg-white/82 p-6 shadow-sm">
-            <p className="text-lg font-semibold text-text">Приоритеты</p>
-            <div className="mt-4 space-y-4">
-              {priorityMix.map((item) => (
-                <div key={item.priority}>
-                  <div className="flex items-center justify-between gap-3">
-                    <Badge tone={priorityTone[item.priority]}>{priorityLabels[item.priority]}</Badge>
-                    <span className="text-sm font-semibold text-text">{item.count}</span>
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.6fr)]">
+        <Card className="p-5">
+          <h2 className="font-semibold">Активность за 7 дней</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Созданные и обновлённые задачи по календарным дням</p>
+          {hasRecentActivity ? (
+            <div className="mt-6 flex h-44 items-end gap-2" aria-label="График активности за семь дней">
+              {timeline.map((item) => (
+                <div key={item.label} className="flex min-w-0 flex-1 flex-col items-center gap-2">
+                  <div className="flex h-32 w-full items-end justify-center gap-1">
+                    <div className="w-2/5 rounded-t bg-primary" style={{ height: `${Math.max(item.created ? 8 : 0, (item.created / maxTimeline) * 100)}%` }} title={`Создано: ${item.created}`} />
+                    <div className="w-2/5 rounded-t bg-sky-400" style={{ height: `${Math.max(item.touched ? 8 : 0, (item.touched / maxTimeline) * 100)}%` }} title={`Обновлено: ${item.touched}`} />
                   </div>
-                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-black/[0.06]">
-                    <div className="h-full rounded-full bg-[#111827]" style={{ width: `${Math.max((item.count / priorityMax) * 100, item.count ? 8 : 0)}%` }} />
-                  </div>
+                  <span className="truncate text-[10px] text-muted-foreground">{item.label}</span>
                 </div>
               ))}
             </div>
-          </section>
-        </aside>
-      </div>
+          ) : (
+            <div className="mt-5 rounded-lg border border-dashed px-5 py-10 text-center">
+              <p className="text-sm font-medium">За последние 7 дней изменений нет</p>
+              <p className="mt-1 text-xs text-muted-foreground">График появится после создания или обновления задачи.</p>
+            </div>
+          )}
+          <div className="mt-4 flex gap-4 text-xs text-muted-foreground"><span><i className="mr-1.5 inline-block size-2 rounded-full bg-primary" />Создано</span><span><i className="mr-1.5 inline-block size-2 rounded-full bg-sky-400" />Обновлено</span></div>
+        </Card>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.8fr)]">
-        <section className="rounded-xl border border-black/[0.08] bg-white/82 p-6 shadow-sm">
-          <p className="text-xs uppercase text-text/40">Темп изменений</p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-normal text-text">Создание, движение и закрытие</h2>
-          <div className="mt-8 grid grid-cols-7 gap-3">
-            {timeline.map((point) => (
-              <div key={point.label} className="text-center">
-                <div className="flex h-40 items-end justify-center gap-1">
-                  <span className="w-3 rounded-full bg-[#d7dee8]" style={{ height: `${Math.max((point.created / timelineMax) * 100, point.created ? 8 : 0)}%` }} />
-                  <span className="w-3 rounded-full bg-[#9bb5ff]" style={{ height: `${Math.max((point.touched / timelineMax) * 100, point.touched ? 8 : 0)}%` }} />
-                  <span className="w-3 rounded-full bg-[#111827]" style={{ height: `${Math.max((point.closed / timelineMax) * 100, point.closed ? 8 : 0)}%` }} />
-                </div>
-                <p className="mt-2 text-[11px] font-semibold text-text/42">{point.label}</p>
+        <Card className="p-5">
+          <h2 className="font-semibold">Приоритет активных задач</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Закрытые задачи не учитываются</p>
+          <div className="mt-5 space-y-3">
+            {priorities.map((item) => (
+              <div key={item.priority} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5">
+                <Badge tone={priorityTone[item.priority]}>{priorityLabels[item.priority]}</Badge>
+                <span className="font-semibold tabular-nums">{item.count}</span>
               </div>
             ))}
           </div>
-          <div className="mt-4 flex flex-wrap gap-3 text-xs text-text/44">
-            <span>Светлый: создано</span>
-            <span>Синий: обновлено</span>
-            <span>Тёмный: закрыто</span>
-          </div>
-        </section>
-
-        <section className="rounded-xl border border-black/[0.08] bg-white/82 p-6 shadow-sm">
-          <p className="text-xs uppercase text-text/40">Нагрузка команды</p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-normal text-text">Нагрузка по исполнителям</h2>
-          <div className="mt-6 space-y-4">
-            {assigneeGroups.length === 0 ? (
-              <p className="text-sm leading-6 text-text/52">Добавьте участников в организацию, чтобы видеть распределение задач.</p>
-            ) : (
-              assigneeGroups.map(({ member, inFlight, total, urgent }) => (
-                <div key={member.id}>
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-text">{member.name}</p>
-                      <p className="mt-1 text-xs text-text/46">
-                        {inFlight} в работе · {total} всего · {urgent} срочных
-                      </p>
-                    </div>
-                    <span className="text-sm font-bold text-text">{inFlight}</span>
-                  </div>
-                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-black/[0.06]">
-                    <div className="h-full rounded-full bg-[#111827]" style={{ width: `${Math.max((inFlight / assigneeMax) * 100, inFlight ? 8 : 0)}%` }} />
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </section>
+        </Card>
       </div>
     </div>
   );
