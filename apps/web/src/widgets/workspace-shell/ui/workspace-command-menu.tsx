@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
+import { Dialog, DialogContent, DialogTitle } from "@tracker/ui";
 import {
   ActivityIcon,
   BoardIcon,
@@ -88,7 +89,7 @@ export function WorkspaceCommandMenu({
       },
       {
         id: "triage",
-        label: "Открыть triage",
+        label: "Открыть очередь разбора",
         description: "Новые задачи без исполнителя",
         keywords: "triage unassigned входящие без исполнителя",
         icon: QueueIcon,
@@ -169,18 +170,9 @@ export function WorkspaceCommandMenu({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[70] flex items-start justify-center bg-[#171a1f]/38 px-4 pt-[12vh] backdrop-blur-[2px]"
-      onMouseDown={(event) => {
-        if (event.currentTarget === event.target) setOpen(false);
-      }}
-    >
-      <section
-        role="dialog"
-        aria-modal="true"
-        aria-label="Командное меню"
-        className="w-full max-w-xl overflow-hidden rounded-xl border border-border bg-card shadow-[0_24px_80px_rgba(16,24,40,0.24)]"
-      >
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="top-[12vh] block max-w-xl translate-y-0 gap-0 overflow-hidden p-0 shadow-soft">
+        <DialogTitle className="sr-only">Командное меню</DialogTitle>
         <label className="flex items-center gap-3 border-b border-border px-4">
           <SearchIcon size={19} className="text-text/38" />
           <input
@@ -239,7 +231,7 @@ export function WorkspaceCommandMenu({
                     command.disabled && "cursor-not-allowed opacity-40",
                   )}
                 >
-                  <span className={clsx("grid h-9 w-9 place-items-center rounded-lg", active ? "bg-white text-accent" : "bg-muted text-text/48")}>
+                  <span className={clsx("grid h-9 w-9 place-items-center rounded-lg", active ? "bg-background text-primary" : "bg-muted text-muted-foreground")}>
                     <Icon size={18} />
                   </span>
                   <span className="min-w-0">
@@ -258,7 +250,7 @@ export function WorkspaceCommandMenu({
           <span>↵ открыть</span>
           <span>Esc закрыть</span>
         </footer>
-      </section>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

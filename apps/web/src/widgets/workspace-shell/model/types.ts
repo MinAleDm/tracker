@@ -1,7 +1,5 @@
 import type { OrganizationDto, ProjectDto, TaskDto, UserSummaryDto } from "@tracker/types";
 
-export type TaskScope = "all" | "mine" | "unassigned" | "review";
-
 export type WorkspaceData = {
   activeOrganizationId: string | null;
   activeProject: ProjectDto | null;

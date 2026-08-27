@@ -7,7 +7,7 @@ export default function AnalyticsPage() {
   return (
     <WorkspacePage
       title="Аналитика"
-      description="Отдельный экран метрик: статус workflow, готовность проекта и распределение нагрузки по команде."
+      description="Измеримые показатели потока задач без условных рейтингов и прогнозов."
     >
       {(data) => <AnalyticsContent data={data} />}
     </WorkspacePage>

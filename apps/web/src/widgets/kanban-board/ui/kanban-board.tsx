@@ -33,8 +33,8 @@ const TaskCard = memo(function TaskCard({ task, onOpen }: { task: TaskDto; onOpe
       ref={setNodeRef}
       style={{ transform: CSS.Translate.toString(transform) }}
       className={clsx(
-        "group rounded-lg border border-black/[0.08] bg-white p-3 text-left shadow-sm transition duration-150",
-        isDragging ? "z-20 scale-[1.015] cursor-grabbing bg-white/70 opacity-60 ring-2 ring-accent/30" : "hover:border-black/[0.14] hover:bg-white",
+        "group rounded-lg border bg-card p-3 text-left shadow-sm transition duration-150",
+        isDragging ? "z-20 scale-[1.015] cursor-grabbing opacity-60 ring-2 ring-ring/30" : "hover:border-primary/30 hover:shadow-md",
       )}
     >
       <button
@@ -62,7 +62,7 @@ const TaskCard = memo(function TaskCard({ task, onOpen }: { task: TaskDto; onOpe
 
         <div className="mt-4 flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2">
-            <div className="grid h-7 w-7 place-items-center rounded-md bg-[#1f2937] text-[10px] font-bold text-white">
+            <div className="grid h-7 w-7 place-items-center rounded-md bg-primary text-[10px] font-bold text-primary-foreground">
               {getInitials(task.assignee?.name ?? "UN")}
             </div>
             <span className="truncate text-xs font-medium text-text/60">{task.assignee?.name ?? "Не назначен"}</span>
@@ -102,15 +102,15 @@ function BoardColumn({
     <section
       ref={setNodeRef}
       className={clsx(
-        "min-h-[420px] rounded-xl border border-border bg-muted/55 p-3 transition xl:min-h-[560px]",
+        "min-h-80 rounded-xl border border-border bg-muted/55 p-3 transition xl:min-h-[calc(100vh-290px)]",
         isOver ? "bg-accent/10 ring-2 ring-accent/20" : "bg-muted/55",
       )}
     >
-      <header className="mb-3 flex items-start justify-between gap-3 border-b border-black/[0.08] pb-3">
+      <header className="mb-3 flex items-start justify-between gap-3 border-b pb-3">
         <div>
           <Badge tone={statusTone[status]}>{statusLabels[status]}</Badge>
           <p className="mt-2 text-xs leading-5 text-text/52">
-            {status === "TODO" ? "Новые и ожидающие triage" : null}
+            {status === "TODO" ? "Новые и ожидающие разбора" : null}
             {status === "IN_PROGRESS" ? "Активная работа команды" : null}
             {status === "REVIEW" ? "Проверка и приёмка результата" : null}
             {status === "DONE" ? "Закрытые и доставленные задачи" : null}
@@ -121,7 +121,7 @@ function BoardColumn({
 
       <div className="space-y-3">
         {tasks.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-black/[0.1] px-4 py-10 text-center text-sm leading-6 text-text/44">
+          <div className="rounded-lg border border-dashed px-4 py-10 text-center text-sm leading-6 text-muted-foreground">
             Перетащите задачу сюда, чтобы сменить статус.
           </div>
         ) : (

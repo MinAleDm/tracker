@@ -31,11 +31,11 @@ export function ProjectCreate({ organizationId }: { organizationId: string }) {
   });
 
   return (
-    <div className="rounded-xl border border-black/[0.08] bg-[#eef1f3] p-4 text-text">
+    <div className="rounded-xl border bg-muted/40 p-4 text-foreground">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs uppercase text-text/36">Новый проект</p>
-          <p className="mt-1 text-sm font-medium text-text/82">Добавить рабочую область</p>
+          <p className="text-xs uppercase text-muted-foreground">Новый проект</p>
+          <p className="mt-1 text-sm font-medium">Добавить рабочую область</p>
         </div>
         <Button
           type="button"
@@ -53,20 +53,20 @@ export function ProjectCreate({ organizationId }: { organizationId: string }) {
             placeholder="Ключ"
             value={keyValue}
             onChange={(event) => setKeyValue(event.target.value)}
-            className="bg-white"
+            className="bg-background"
           />
           <Input
             placeholder="Название проекта"
             value={name}
             onChange={(event) => setName(event.target.value)}
-            className="bg-white"
+            className="bg-background"
           />
           <Textarea
             rows={3}
             placeholder="Короткое описание"
             value={description}
             onChange={(event) => setDescription(event.target.value)}
-            className="bg-white"
+            className="bg-background"
           />
           <Button
             type="button"

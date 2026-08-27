@@ -26,7 +26,7 @@ interface UiState {
   priority: TaskPriority | "ALL";
   assigneeId: string | "ALL";
   savedTaskViews: SavedTaskView[];
-  createTaskSignal: number;
+  taskComposerOpen: boolean;
   setHydrated: (value: boolean) => void;
   setSession: (input: { accessToken: string; user: AuthUserDto }) => void;
   updateAccessToken: (accessToken: string) => void;
@@ -42,6 +42,7 @@ interface UiState {
   applyTaskView: (view: Pick<SavedTaskView, "search" | "status" | "priority" | "assigneeId">) => void;
   deleteTaskView: (id: string) => void;
   requestTaskCreate: () => void;
+  setTaskComposerOpen: (value: boolean) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -58,7 +59,7 @@ export const useUiStore = create<UiState>()(
       priority: "ALL",
       assigneeId: "ALL",
       savedTaskViews: [],
-      createTaskSignal: 0,
+      taskComposerOpen: false,
       setHydrated: (hydrated) => set({ hydrated }),
       setSession: ({ accessToken, user }) =>
         set({
@@ -111,10 +112,8 @@ export const useUiStore = create<UiState>()(
         set((state) => ({
           savedTaskViews: state.savedTaskViews.filter((view) => view.id !== id),
         })),
-      requestTaskCreate: () =>
-        set((state) => ({
-          createTaskSignal: state.createTaskSignal + 1,
-        })),
+      requestTaskCreate: () => set({ taskComposerOpen: true }),
+      setTaskComposerOpen: (taskComposerOpen) => set({ taskComposerOpen }),
     }),
     {
       name: "tracker-web-ui",

@@ -1,10 +1,10 @@
 import type { TaskDto, TaskPriority, TaskStatus, UserSummaryDto } from "@tracker/types";
 import { formatDayKey } from "@/shared/lib/utils/date";
-import { countByStatus, getCompletion, sortByFreshness } from "@/widgets/workspace-shell/lib/task-utils";
+import { countByStatus, sortByFreshness } from "@/widgets/workspace-shell/lib/task-utils";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-export function isTaskStale(task: TaskDto, thresholdDays = 3): boolean {
+export function isTaskStale(task: TaskDto, thresholdDays = 7): boolean {
   if (task.status === "DONE") {
     return false;
   }
@@ -13,11 +13,13 @@ export function isTaskStale(task: TaskDto, thresholdDays = 3): boolean {
 }
 
 export function getAttentionCounts(tasks: TaskDto[]) {
+  const activeTasks = tasks.filter((task) => task.status !== "DONE");
+
   return {
-    urgent: tasks.filter((task) => task.priority === "URGENT").length,
+    urgent: activeTasks.filter((task) => task.priority === "URGENT").length,
     review: countByStatus(tasks, "REVIEW"),
-    unassigned: tasks.filter((task) => !task.assignee).length,
-    stale: tasks.filter((task) => isTaskStale(task)).length,
+    unassigned: activeTasks.filter((task) => !task.assignee).length,
+    stale: activeTasks.filter((task) => isTaskStale(task)).length,
   };
 }
 
@@ -31,45 +33,6 @@ export function getDeliveryStats(tasks: TaskDto[], windowDays = 7) {
     created,
     closed,
     delta: closed - created,
-  };
-}
-
-export function getProjectPulse(tasks: TaskDto[]) {
-  const completion = getCompletion(tasks);
-  const attention = getAttentionCounts(tasks);
-
-  if (tasks.length === 0) {
-    return {
-      label: "Пусто",
-      tone: "neutral" as const,
-      summary: "Пока нет задач. Можно настроить первый поток работы.",
-      score: 0,
-    };
-  }
-
-  if (attention.urgent > 2 || attention.stale > 3) {
-    return {
-      label: "Риск",
-      tone: "danger" as const,
-      summary: "Есть критичные или застрявшие задачи. Нужен triage.",
-      score: Math.max(28, completion),
-    };
-  }
-
-  if (attention.review > 0 || attention.unassigned > 0) {
-    return {
-      label: "Контроль",
-      tone: "warning" as const,
-      summary: "Проект движется, но есть очередь на разбор и приёмку.",
-      score: Math.max(40, completion),
-    };
-  }
-
-  return {
-    label: "Норма",
-    tone: "success" as const,
-    summary: "Поток задач сбалансирован, критичных блокеров не видно.",
-    score: Math.max(58, completion),
   };
 }
 
