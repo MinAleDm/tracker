@@ -52,7 +52,8 @@ kubectl kustomize k8s/base >/tmp/tracker-k8s.yaml
 - Service account tokens не монтируются.
 - API, Web и Nginx запускаются non-root, без capabilities/privilege escalation, с read-only root fs.
 - PostgreSQL и Redis доступны только разрешённым pods через NetworkPolicy.
-- Nginx ограничивает request body, auth/API rate и число Socket.IO connections.
+- Nginx ограничивает request body, строгий login/invitation rate, общий API rate и число Socket.IO connections;
+  refresh/logout дополнительно ограничены policy API.
 - Secret manifest отсутствует в Git; `k8s/secret.env` игнорируется.
 - Demo seed и Swagger выключены в base config.
 

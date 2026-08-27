@@ -54,6 +54,9 @@ docker compose config --quiet
 Добавляйте тесты для authorization boundaries, межорганизационной изоляции, token lifecycle,
 миграций, кеш-инвалидации и realtime-подписок.
 
+При заметном изменении UI обновите production-галерею по инструкции
+[`docs/screenshots/README.md`](./docs/screenshots/README.md) и визуально проверьте desktop/mobile кадры.
+
 ## Коммиты и pull request
 
 Используйте небольшие Conventional Commits: `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`,

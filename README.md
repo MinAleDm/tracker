@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./apps/web/public/logo.png" width="104" alt="Tracker logo" />
+  <img src="./apps/web/public/logo.svg" width="96" alt="Tracker logo" />
   <h1>Tracker</h1>
   <p><strong>Командный task tracker с организациями, ролями, realtime-доской и безопасной browser session.</strong></p>
 
@@ -14,10 +14,9 @@
 
 ---
 
-Tracker — full-stack монорепозиторий для управления проектами и задачами. Он сочетает быстрый
-Next.js-интерфейс, versioned NestJS API, PostgreSQL/Prisma, Redis cache и Socket.IO. Проект рассчитан
-на развитие как модульный монолит: границы домена явные, а frontend и backend можно развёртывать
-независимо.
+Tracker — full-stack монорепозиторий для управления проектами и задачами. Актуальный интерфейс построен
+вокруг личного фокуса, очередей разбора, компактного списка, Kanban и измеримой аналитики потока.
+Frontend и API развёртываются независимо, а backend сохраняет границы модульного монолита.
 
 > [!IMPORTANT]
 > Репозиторий предоставляет укреплённый baseline, но не заменяет production-платформу. Перед публичным
@@ -27,8 +26,12 @@ Next.js-интерфейс, versioned NestJS API, PostgreSQL/Prisma, Redis cache
 ## Возможности
 
 - организации, membership-роли `OWNER` / `ADMIN` / `MEMBER` и проекты;
-- задачи с приоритетами, статусами, исполнителями, фильтрами и сохранёнными представлениями;
-- list, kanban, overview, analytics и детальная карточка задачи;
+- задачи с приоритетами, статусами, исполнителями, фильтрами и локально сохранёнными представлениями;
+- рабочая главная с личной очередью, разбором, review и последними изменениями;
+- компактный list view, Kanban с drag-and-drop и едиными фильтрами;
+- измеримая аналитика WIP, review, незакреплённых и давно не обновлённых задач;
+- полноценная карточка задачи с редактированием, комментариями, activity и подборкой похожих задач;
+- command palette, горячая клавиша создания, светлая/тёмная тема и responsive mobile UI;
 - комментарии и история активности;
 - realtime-инвалидация данных через защищённые project rooms Socket.IO;
 - приглашения с одноразовым токеном и сроком действия;
@@ -37,24 +40,26 @@ Next.js-интерфейс, versioned NestJS API, PostgreSQL/Prisma, Redis cache
 - Docker Compose и Kubernetes base с restricted security context;
 - CI: lint, typecheck, 17 API tests, build, dependency audit, CodeQL и Dependency Review.
 
-## Скриншоты
+## Интерфейс
 
-| Вход | Рабочее пространство |
-| --- | --- |
-| ![Экран входа](./docs/screenshots/01-sign-in.png) | ![Рабочее пространство](./docs/screenshots/02-workspace.png) |
+![Главная Tracker](./docs/screenshots/02-overview.png)
 
-| Обзор | Задачи |
+| Вход | Список задач |
 | --- | --- |
-| ![Обзор проекта](./docs/screenshots/03-overview.png) | ![Список задач](./docs/screenshots/04-tasks.png) |
+| ![Экран входа](./docs/screenshots/01-sign-in.png) | ![Компактный список задач](./docs/screenshots/03-tasks.png) |
 
-| Доска | Аналитика |
+| Kanban | Аналитика потока |
 | --- | --- |
-| ![Канбан-доска](./docs/screenshots/05-boards.png) | ![Аналитика проекта](./docs/screenshots/06-analytics.png) |
+| ![Kanban-доска](./docs/screenshots/04-boards.png) | ![Аналитика потока задач](./docs/screenshots/05-analytics.png) |
 
 <details>
-<summary><strong>Карточка задачи</strong></summary>
+<summary><strong>Карточка задачи и мобильный интерфейс</strong></summary>
 
-![Карточка задачи](./docs/screenshots/07-task-detail.png)
+![Карточка задачи](./docs/screenshots/06-task-detail.png)
+
+| Мобильная главная | Мобильный список |
+| --- | --- |
+| ![Мобильная главная](./docs/screenshots/07-mobile-overview.png) | ![Мобильный список задач](./docs/screenshots/08-mobile-tasks.png) |
 
 </details>
 
@@ -107,7 +112,7 @@ decisions: при его отказе API продолжает работать 
 - production runtime выполняет `prisma migrate deploy`, а demo seed выключен по умолчанию;
 - сервисы запускаются без root, с read-only filesystem/capability restrictions;
 - plaintext Kubernetes Secret не хранится в репозитории;
-- high-severity dependency audit на 2026-08-21: 0 известных уязвимостей.
+- high-severity dependency audit на 2026-08-27: 0 известных уязвимостей.
 
 Не публикуйте уязвимости в issues. Используйте процедуру из [`SECURITY.md`](./SECURITY.md). Полная модель
 угроз и residual risks: [`docs/THREAT_MODEL.md`](./docs/THREAT_MODEL.md).
@@ -116,7 +121,7 @@ decisions: при его отказе API продолжает работать 
 
 | Область | Стек |
 | --- | --- |
-| Web | Next.js 15, React 19, React Query 5, Zustand 5, dnd-kit |
+| Web | Next.js 15, React 19, shadcn/ui, Radix UI, React Query 5, Zustand 5, dnd-kit |
 | API | NestJS 11, Passport JWT, Socket.IO 4, class-validator |
 | Data | PostgreSQL 16, Prisma 6, Redis 7 |
 | Tooling | TypeScript 5.9, ESLint 8, Node test runner, pnpm 9 |
@@ -160,8 +165,8 @@ docker compose ps
 | Swagger (если включён) | `http://localhost:8080/api/docs` |
 | API readiness | `http://localhost:8080/api/health/ready` |
 
-Прямые порты PostgreSQL, Redis, API и Web привязаны к loopback для локальной диагностики. Публичной
-точкой входа считается Nginx на `8080`.
+Прямые порты PostgreSQL, Redis и API привязаны к loopback для локальной диагностики. Web-контейнер
+доступен только внутри Compose-сети: единственной браузерной точкой входа является Nginx на `8080`.
 
 Остановить окружение:
 
@@ -241,6 +246,9 @@ pnpm db:migrate                # development migration flow
 pnpm db:seed                   # explicit demo seed
 ```
 
+Документационные скриншоты снимаются с production-сборки через Nginx на `8080`; SVG/PNG логотип и
+product preview находятся в [`apps/web/public`](./apps/web/public).
+
 Полная проверка deployment manifests:
 
 ```bash
@@ -315,6 +323,7 @@ Access token намеренно не сохраняется в browser storage. 
 - [Threat model](./docs/THREAT_MODEL.md)
 - [Operations runbook](./docs/operations/runbook.md)
 - [Frontend audit](./docs/frontend-audit.md)
+- [Обновление скриншотов](./docs/screenshots/README.md)
 - [Security policy](./SECURITY.md)
 - [Contributing](./CONTRIBUTING.md)
 - [Changelog](./CHANGELOG.md)

@@ -24,13 +24,30 @@ flowchart LR
   Socket --> Browser
 ```
 
-- `apps/web` — App Router UI, React Query, Zustand и Socket.IO client.
+- `apps/web` — App Router UI, shadcn/ui, React Query, Zustand и Socket.IO client.
 - `apps/api` — versioned HTTP API, authorization, domain services и realtime gateway.
 - `packages/types` — общие транспортные DTO.
 - `packages/ui` — UI-примитивы без бизнес-логики.
 - `packages/db` — Prisma schema, migrations и явный seed.
 - PostgreSQL — единственный источник истины.
 - Redis — необязательный кеш; его отказ ухудшает latency, но не корректность.
+
+## Frontend information architecture
+
+`WorkspacePage` восстанавливает session и единый organization/project context, после чего route
+компонует доменные widgets:
+
+| Route | Назначение |
+| --- | --- |
+| `/` | личная активная работа, очереди разбора/review и последние изменения |
+| `/tasks` | компактный read-first list, сохранённые views и общие фильтры |
+| `/boards` | тот же task set в Kanban; drag-and-drop выполняет status mutation |
+| `/analytics` | измеримые показатели текущего task flow без условного health score |
+| `/tasks/:id` | редактирование, workflow action, comments, activity и related tasks |
+
+React Query владеет server state. Zustand хранит только UI preferences и текущий in-memory access token;
+transport DTO импортируются из `packages/types`. UI-примитивы находятся в `packages/ui`, route composition —
+в `app`, действия — в `features`, крупные секции — в `widgets`.
 
 ## Backend-модули и владение данными
 
@@ -78,6 +95,10 @@ Socket.IO rooms и assignee validation.
 5. Каждый refresh ротирует token. Повторное использование отозванного token отзывает всю family.
 6. Logout отзывает family и удаляет cookie.
 
+На edge строгий auth limit применяется к login и invitation acceptance. Refresh/logout проходят через
+общий API limit и дополнительно ограничены policy самого API; это сохраняет защиту credential endpoints,
+не превращая обычное восстановление сессии в ложный logout.
+
 ## Поток изменения задачи
 
 ```mermaid
@@ -102,8 +123,8 @@ transactional outbox; это явно зафиксированный residual ri
 
 ## Deployment topology
 
-- Docker Compose — локальный/односерверный контур. Внутренние порты привязаны к loopback, публичная
-  точка — unprivileged Nginx.
+- Docker Compose — локальный/односерверный контур. PostgreSQL, Redis и API привязаны к loopback,
+  Web доступен только в Compose-сети, публичная точка — unprivileged Nginx.
 - Kubernetes base — демонстрационный self-contained контур с NetworkPolicy и restricted workloads.
 - Production — внешний TLS ingress, managed PostgreSQL/Redis, secret manager, backup/restore,
   централизованные метрики/логи и отдельный migration job.
@@ -118,7 +139,7 @@ API container выполняет только `prisma migrate deploy`; seed за
 1. Transactional outbox для activity/realtime delivery.
 2. Распределённый rate limiter для нескольких API replicas.
 3. OpenTelemetry traces/metrics и SLO для login/task mutation.
-4. E2E browser tests и accessibility regression checks.
+4. Постоянные E2E browser tests, visual regression и accessibility checks в CI.
 5. Production overlay: external secrets, autoscaling, PDB и managed data services.
 
 Решения: [`docs/adr`](./adr), риски: [`THREAT_MODEL.md`](./THREAT_MODEL.md), состояние:

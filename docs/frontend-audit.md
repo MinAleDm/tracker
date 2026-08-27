@@ -1,46 +1,56 @@
 # Frontend audit
 
-Срез: 25 июля 2026 года.
+Срез: 27 августа 2026 года.
 
-## Текущее состояние
+## Что изменено
 
-Frontend построен на Next.js App Router, React Query и Zustand. Основной рабочий контур включает:
+Интерфейс переведён на shadcn/ui-примитивы поверх Radix UI, CVA и Lucide. Семантические токены,
+светлая и тёмная темы, focus states и reduced motion теперь задаются общим UI-пакетом.
 
-- явную desktop-навигацию и компактную mobile-навигацию;
-- список задач с views, фильтрами и inline-редактированием;
-- Kanban с drag-and-drop и горизонтальным потоком на узких экранах;
-- быстрый composer задачи, клавишу `C` и command palette по `⌘/Ctrl+K`;
-- overview, аналитику и детальную карточку задачи;
-- loading, empty, API error, route error и 404-состояния;
-- общий слой task mutations, единые UI-токены и видимый keyboard focus;
-- lint, typecheck и production build как проверяемый контур качества.
+Информационная архитектура упрощена:
 
-## Сравнение с аналогами
+- overview показывает личную активную работу, очереди разбора/review и последние изменения;
+- список и Kanban используют один набор фильтров и сохранённых представлений;
+- создание задачи открывается в dialog и больше не занимает постоянный экранный блок;
+- строки списка работают как краткое резюме и ведут в полноценную карточку вместо набора inline-select;
+- повторяющиеся KPI, marketing-страница `/pages/my` и дублирующие сводки на доске удалены;
+- аналитика показывает только наблюдаемые данные: WIP, review, незакреплённые и давно не обновлённые
+  задачи, распределение статусов и активных назначений;
+- условный «pulse score» удалён: модель данных не позволяет достоверно оценивать здоровье проекта,
+  загрузку или производительность;
+- пустое временное окно аналитики имеет явное empty state вместо пустого графика.
 
-| Продукт | Сильный паттерн | Состояние Tracker |
-| --- | --- | --- |
-| [Linear](https://linear.app/docs/conceptual-model) | Несколько способов выполнить действие, keyboard-first управление, динамические views | Composer, command palette, shortcut `C`, presets и сохранённые views реализованы; bulk actions остаются следующим шагом |
-| [Plane](https://docs.plane.so/) | Issues, cycles, modules, views и расширяемая структура проекта | Issues и views реализованы; cycles/modules пока отсутствуют |
-| [Jira](https://support.atlassian.com/jira-software-cloud/docs/what-is-a-jira-software-board/) | Тактическая доска отдельно от долгосрочного планирования | Список и Kanban разделены; timeline/roadmap пока отсутствует |
+Актуальная галерея production-интерфейса хранится в [`docs/screenshots`](./screenshots), а мастер
+логотипа — в [`apps/web/public/logo.svg`](../apps/web/public/logo.svg). Скриншоты покрывают desktop и
+mobile viewport, вход, overview, list, Kanban, analytics и task detail.
 
-## Принятые UX-решения
+## Сравнение с актуальными паттернами
 
-- Навигация стала подписанной и постоянно видимой: разделы больше не зависят от запоминания иконок.
-- Повторяющиеся KPI и поясняющие панели удалены со страниц задач и доски.
-- Быстрое создание больше не сохраняет задачу-заглушку: сначала открывается composer.
-- Command palette объединяет навигацию, создание задачи, личную очередь и triage в одном keyboard-first сценарии.
-- Таблица стала компактнее: ключ, контекст и сигналы отделены от редактируемых полей.
-- Kanban сохраняет четыре lane в горизонтальном потоке вместо длинной одноколоночной страницы.
-- Focus indicator, reduced motion и размеры основных контролов приведены к устойчивой keyboard/touch-модели по мотивам [WCAG 2.2](https://www.w3.org/WAI/standards-guidelines/wcag/new-in-22/).
+Tracker следует [концептуальной модели Linear](https://linear.app/docs/conceptual-model): задача — базовая единица работы, а список, доска и views — разные
+способы сфокусироваться на одном наборе задач. Главная организована вокруг личной работы и очередей,
+а не общего набора vanity metrics. [Фильтры и сохранённые views](https://linear.app/docs/custom-views) не изменяют сами задачи.
 
-## Рекомендуемый следующий этап
+[Jira также сохраняет фильтры между представлениями](https://support.atlassian.com/jira-software-cloud/docs/filter-work-items/) и отделяет быстрые фильтры от редактирования issue.
+Поэтому изменение статуса и остальных полей оставлено карточке и Kanban, а список оптимизирован для
+сканирования.
 
-1. Bulk selection и массовое изменение статуса, owner и priority.
-2. Cycles, backlog и roadmap/timeline поверх текущей модели задач.
-3. URL-синхронизация фильтров и серверные сохранённые views для командного шаринга.
-4. Виртуализация длинных списков и cursor pagination вместо лимита в 100 задач.
-5. Playwright visual regression для desktop/mobile и axe-проверка доступности.
+## Ограничения текущей бизнес-модели
 
-## Производительность
+Схема поддерживает status, priority, assignee, creator, comments и activity. В ней пока нет backlog,
+cycle/sprint, due date, estimate, labels, rank, relations и отдельного `completedAt`. Интерфейс не
+имитирует эти сущности локальным состоянием и не делает прогнозов из `updatedAt`.
 
-Kanban загружается отдельным клиентским чанком, а не входит в начальный JavaScript маршрута. После удаления единственного использования Framer Motion first-load bundle `/boards` снизился с `193 KB` до `147 KB` — примерно на 24%.
+Следующий продуктовый этап потребует миграций и API-контрактов:
+
+1. Backlog и ранжирование задач.
+2. Cycles/sprints с датами и scope.
+3. Labels, estimates, due dates и task relations.
+4. Серверные командные views и URL-синхронизация фильтров.
+5. Cursor pagination, bulk actions и visual regression suite.
+
+## Security и эксплуатация
+
+Access token остаётся только в памяти, refresh token — в HttpOnly cookie. Строгий edge rate limit
+применяется к login и invitation acceptance; refresh/logout идут через общий API limit и дополнительно
+ограничены API policy. Это исключает ложный разлогин при нескольких обычных перезагрузках, не ослабляя
+защиту login endpoint.
