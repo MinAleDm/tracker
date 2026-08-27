@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Tracker</title>
   <rect x="4" y="4" width="56" height="56" rx="15" fill="#6366f1" />
   <rect
     x="23"

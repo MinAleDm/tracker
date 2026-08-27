@@ -20,6 +20,9 @@ NestJS backend для аутентификации, организаций, пр
 
 Полный список routes генерируется Swagger из запущенного приложения.
 
+На edge login и invitation acceptance используют отдельный строгий limit. Refresh/logout проходят через
+общий API edge limit; controller policies дополнительно ограничивают refresh/logout до 30 запросов в минуту.
+
 ## Архитектурные границы
 
 ```text

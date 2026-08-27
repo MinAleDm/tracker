@@ -6,10 +6,30 @@
 
 ## [Unreleased]
 
+### Added
+
+- Общий shadcn/ui-слой на Radix UI, CVA, Lucide и семантических theme tokens.
+- Responsive workspace shell, command palette, task composer dialog и desktop/mobile documentation gallery.
+- Актуальный production-логотип в SVG/PNG, favicon и product preview.
+
+### Changed
+
+- Главная теперь сфокусирована на личной работе, очередях разбора/review и последних изменениях.
+- List и Kanban используют единые фильтры и представления; task rows стали read-first и ведут в карточку.
+- Аналитика показывает только измеримые свойства текущей модели: WIP, review, незакреплённые и stale tasks.
+- `/pages/my` оставлен как legacy redirect на overview; отдельная маркетинговая workspace-страница удалена.
+- Web-контейнер доступен только внутри Compose-сети, публичный browser endpoint обслуживает Nginx.
+
+### Removed
+
+- Повторяющиеся KPI/summary blocks, постоянная inline-форма создания и недостоверный project pulse score.
+
 ### Fixed
 
 - GitHub Actions и Docker builds больше не зависят от устаревшего Corepack keyring в Node.js 22.13.1;
   точная версия `pnpm@9.15.4` устанавливается напрямую, а workspace scripts используют активный pnpm.
+- Refresh/logout больше не делят строгий edge rate limit с login, что устраняет ложный разлогин при серии
+  обычных перезагрузок; login и invitation acceptance сохраняют отдельный строгий лимит.
 
 ## [1.1.0] - 2026-08-21
 
