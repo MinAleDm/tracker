@@ -20,7 +20,7 @@
     "@nestjs/platform-socket.io": "^11.2.1",
     "@nestjs/swagger": "^11.4.7",
     "@nestjs/websockets": "^11.2.1",
-    "@prisma/client": "^6.19.3",
+    "@prisma/client": "^7.10.0",
     "@tracker/db": "workspace:*",
     "@tracker/types": "workspace:*",
     "bcryptjs": "^2.4.3",
